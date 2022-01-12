@@ -1,45 +1,96 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Insert title here</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
 </head>
 <body>
-<%   //로그인 상태에서는 페이지 접근 금지 
-   if(session.getAttribute("loginMember") != null){
-      //다시 브라우저에게 다른곳을 요청하도록 하기 위해 만든것 
-      response.sendRedirect("./index.jsp");
-      return;
-   }
-%>
-
-   <h1>회원가입</h1>
-   <form method = "post" action = "./insertMemberAction.jsp">
-      <!--회원아이디-->
-      <div>memberId :</div>
-      <div><input type = "text" name ="memberId"></div>
-      <!--회원비번-->
-      <div>memberPw :</div>
-      <div><input type = "password" name ="memberPw"></div>
-      <!--회원이름-->
-      <div>memberName :</div>
-      <div><input type = "text" name ="memberName"></div>
-      <!--회원나이-->
-      <div>memberAge :</div>
-      <div><input type = "text" name ="memberAge"></div>
-      <!--회원 성별-->
-      <div>memberGender :</div>
-      <div>
-         <input type = "radio" name ="memberGender" value = "남">남
-         
-         <input type = "radio" name ="memberGender" value = "여">여
-       </div>
-       
-   
-      <button type = "submit">등록</button>
-      
-   </form>
+	<!-- submenu 인클루드(include) 시작 -->
+	<div>
+		<!-- ./같은위치/partial폴더/submenu.jsp(webContent,상대주소) , /shop/partial/submenu.jsp(프로젝트기준,절대주소),/partial/submenu.jsp(절대주소)-->
+		<jsp:include page="/partial/mainMenu.jsp"></jsp:include><!-- jsp액션태그 -->
+	</div>
+	<!-- submenu 인클루드 끝 -->
+	<div>
+		<h1>회원가입</h1>
+	
+		<%
+			String memberIdCheck = "";
+			if(request.getParameter("memberIdCheck") != null) {
+				memberIdCheck = request.getParameter("memberIdCheck");
+			} 
+		%>
+			
+		<!-- 멤버아이디가 사용가능한지 확인 폼 -->
+		<form action="<%=request.getContextPath()%>/selectMemberIdCheckAction.jsp" method="post">
+			<div>
+				회원아이디 :
+				<input type="text" name="memberIdCheck">
+				<button type="submit">아이디 중복 검사</button>
+			</div>
+		</form>
+		
+		<!-- 회원가입 폼 -->
+		<form id="joinForm" action="<%=request.getContextPath()%>/insertMemberAction.jsp" method="post">
+			<table border="1">
+				<tr>
+					<td>회원아이디</td>
+					<td><input type="text" id="memberId" name="memberId" readonly="readonly" value="<%=memberIdCheck%>"></td>
+				</tr>
+				<tr>
+					<td>회원비밀번호</td>
+					<td><input type="password" id="memberPw" name="memberPw"></td>
+				</tr>
+				<tr>
+					<td>회원이름</td>
+					<td><input type="text" id="memberName" name="memberName"></td>
+				</tr>
+				<tr>
+					<td>회원나이</td>
+					<td><input type="text" id="memberAge" name="memberAge"></td>
+				</tr>
+				<tr>
+					<td>성별</td>
+					<td>
+						<input type="radio" class="memberGender" name="memberGender" value="남">남
+						<input type="radio" class="memberGender" name="memberGender" value="여">여
+					</td>
+				</tr>
+			</table>
+			<button id="btn" type="button">회원가입</button>
+		</form>
+	</div>
+	<script>
+		$('#btn').click(function(){
+			if($('#memberId').val() == '') {
+				alert('memberId를 입력하세요');
+				return;
+			}
+			if($('#memberPw').val() == '') {
+				alert('memberPw를 입력하세요');
+				return;
+			}
+			if($('#memberName').val() == '') {
+				alert('memberName를 입력하세요');
+				return;
+			}
+			if($('#memberAge').val() == '') {
+				alert('memberAge를 입력하세요');
+				return;
+			}
+			let memberGedner = $('.memberGender:checked'); // . 클래스속성으로 부르면 리턴값은 배열
+			if(memberGedner.length == 0) {
+				alert('memberGender를 선택하세요');
+				return;
+			}
+			
+			$('#joinForm').submit();
+		});
+	
+		
+	</script>
 </body>
 </html>

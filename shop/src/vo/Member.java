@@ -8,8 +8,15 @@ public class Member {
 	private String memberName;
 	private int memberAge;
 	private String memberGender;
+	private String createDate;
 	private String updateDate;
-	private String insertDate;
+	
+	@Override
+	public String toString() {
+		return "Member [memberNo=" + memberNo + ", memberId=" + memberId + ", memberPw=" + memberPw + ", memberLevel="
+				+ memberLevel + ", memberName=" + memberName + ", memberAge=" + memberAge + ", memberGender="
+				+ memberGender + ", createDate=" + createDate + ", updateDate=" + updateDate + "]";
+	}
 	public int getMemberNo() {
 		return memberNo;
 	}
@@ -52,16 +59,17 @@ public class Member {
 	public void setMemberGender(String memberGender) {
 		this.memberGender = memberGender;
 	}
+	public String getCreateDate() {
+		return createDate;
+	}
+	public void setCreateDate(String createDate) {
+		this.createDate = createDate;
+	}
 	public String getUpdateDate() {
 		return updateDate;
 	}
 	public void setUpdateDate(String updateDate) {
 		this.updateDate = updateDate;
 	}
-	public String getInsertDate() {
-		return insertDate;
-	}
-	public void setInsertDate(String insertDate) {
-		this.insertDate = insertDate;
-	}
+
 }
