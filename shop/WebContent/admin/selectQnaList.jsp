@@ -1,141 +1,201 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="vo.*" %>
-<%@ page import="dao.*" %>
-<%@ page import="java.util.*" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import = "vo.*" %>
+<%@ page import = "model.*" %>
+<%@ page import = "java.util.ArrayList" %>
 <%
-	//한글인코딩
+	//인코딩
 	request.setCharacterEncoding("utf-8");
 
-	// 로그인 방어코드
+	//인증 방어 코드 : 로그인 후, MemgerLevel이 1이상인 경우에만 페이지 열람 가능
+	// session.getAttribute("loginMember") --> null
 	Member loginMember = (Member)session.getAttribute("loginMember");
-	// 로그인 멤버값이 없거나 memberLevel이 1미만(일반 사용자)일때는 접근 불가. 
-	// 순서를 바꾸면안됨(바꾸면 null포인트 인셉션이 일어남).
-	if(loginMember==null || loginMember.getMemberLevel() < 1){
+	if(loginMember == null || loginMember.getMemberLevel() <1 ){
 		response.sendRedirect(request.getContextPath()+"/index.jsp");
 		return;
 	}
-	//검색어
-	String searchQnaTitle = "";
-	if(request.getParameter("searchQnaTitle")!=null){
-		searchQnaTitle = request.getParameter("searchQnaTitle");
+	session.setMaxInactiveInterval(30*60);
+	
+	boolean donAnswer = false;
+	if(request.getParameter("donAnswer") != null){
+		donAnswer = Boolean.parseBoolean(request.getParameter("donAnswer"));
 	}
-	System.out.println(searchQnaTitle+" <--selectQnaList searchQnaTitle");
-
-	//페이지
+	
 	int currentPage = 1;
-	//currentPage는 값이 들어오면 1대신 그 값으로 바뀜
-	if(request.getParameter("currentPage")!=null){
+	if(request.getParameter("currentPage") != null){
 		currentPage = Integer.parseInt(request.getParameter("currentPage"));
 	}
-	System.out.println(currentPage+" <-selectNoticeList currentPage");
+	System.out.println("[Debug] currentPage : "+currentPage);
 	
-	//상수(fianl)
-	//rowPerPage변수 10으로 초기화되면 끝까지 10이다(변하지 않음)
-	final int ROW_PER_PAGE = 10;
+	final int ROW_PER_PAGE = 10; // rowPerPage변수 10으로 초기화되면 끝까지 10을 써야 한다. --> 상수
+	
 	int beginRow = (currentPage-1)*ROW_PER_PAGE;
 	
+	
+	// 체크박스 체크 여부에 따라 답글을 달지 않은 qna 목록 출력 결정
 	QnaDao qnaDao = new QnaDao();
-	
-	ArrayList<QnaMemberComment> qnaList = null;
-	
-	if(searchQnaTitle.equals("") == true) { // 검색어가 없을때
-		qnaList = qnaDao.selectQnaListAllByPage(beginRow, ROW_PER_PAGE);
-	} else { // 검색어가 있을때
-		qnaList = qnaDao.selectQnaListAllBySearchQnaTitle(beginRow, ROW_PER_PAGE, searchQnaTitle);
+	QnaCommentDao qnaCommentDao = new QnaCommentDao();
+	ArrayList<Qna> qnaList = new ArrayList<>();
+	if(donAnswer == false){
+		qnaList = qnaDao.selectQnaList(beginRow, ROW_PER_PAGE);
+	} else if(donAnswer == true){
+		qnaList = qnaCommentDao.selectNotAnswerQnaList(beginRow, ROW_PER_PAGE);
 	}
-
-	int totalCount = qnaDao.totalQnaCount();
+	
+	MemberDao memberDao = new MemberDao();
+	
 %>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Q&A 게시판</title>
+<title>문의 목록</title>	<!-- 관리자 문의 목록 페이지 -->
 </head>
 <body>
-	<!-- submenu 인클루드(include) 시작 -->
+<div class="container-fluid">
+	<!-- banner include -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- 관리자 메뉴 include -->
+	<!-- 관리자 메뉴 인클루드(include)시작 ,페이지 형태만 인클루드 하는 것이 좋음(코드 형태는 비추천).-->
 	<div>
-		<!-- ./같은위치/partial폴더/submenu.jsp(webContent,상대주소) , /shop/partial/submenu.jsp(프로젝트기준,절대주소),/partial/submenu.jsp(절대주소)-->
 		<jsp:include page="/partial/adminMenu.jsp"></jsp:include><!-- jsp액션태그 -->
 	</div>
-	<!-- submenu 인클루드 끝 -->
-	<h1>Q&A목록</h1>
-	<table border="1">
+	<!-- 관리자 메뉴 인클루드 끝 -->
+	<div style="text-align: center">
+		<h1>[Qna 게시판 관리]</h1>
+		<br>
 		<%
-			for(QnaMemberComment qmc : qnaList){
+		if(donAnswer==false){
 		%>
-		<thead>
-			<tr>
-				<th>Q&A 번호</th>
-				<th>Q&A 목록</th>
-				<th>Q&A 제목</th>
-				<th>Q&A 공개여부</th>
-				<th>작성자</th>
-				<th>createDate</th>
-				<th>updateDate</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><%=qmc.getQna().getQnaNo() %><a href="<%=request.getContextPath()%>/admin/updateQnaForm.jsp">Q&A 수정하기</a></td>
-				<td><%=qmc.getQna().getQnaCategory() %></td>
-				<td>
-					<a href="<%=request.getContextPath() %>/admin/selectQnaOne.jsp?qnaNo=<%=qmc.getQna().getQnaNo()%>"><%=qmc.getQna().getQnaTitle() %></a>
-				</td>
-				<td>
-				<%
-					if(qmc.getQna().getQnaSecret().equals("Y")){
-				%>
-						<span>비공개</span>
-				<%
-					} else if(qmc.getQna().getQnaSecret().equals("N")){
-				%>
-						<span>공개</span>
-				<%
-					}
-				%>
-				</td>
-				<td><%=qmc.getMember().getMemberName() %></td>
-				<td><%=qmc.getQna().getCreateDate() %></td>
-				<td><%=qmc.getQna().getUpdateDate() %></td>
-			</tr>	
-		</tbody>
+			답변하지 않은 글만 보기 <input type="checkbox" class="qnaDonAnswer">
 		<%
-			}
+		} else if(donAnswer==true){
 		%>
-	</table>
-	<div>
-		<%
-			// ISSUE : 페이지 잘되었는데... 검색한후 페이징하면 안된다 -> ISSUE 해결
-			if (currentPage > 1) {
-		%>
-			<a href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=<%=currentPage-1%>&searchQnaTitle=<%=searchQnaTitle%>">이전</a>
-		<%
-			}
-		%>
-		<%		
-			int lastPage = totalCount / ROW_PER_PAGE;
-			
-			if (totalCount % ROW_PER_PAGE != 0) {
-				lastPage += 1;
-			}
-		
-			if (currentPage < lastPage) {
-		%>
-			<a href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=<%=currentPage+1%>&searchQnaTitle=<%=searchQnaTitle%>">다음</a>
+			답변하지 않은 글만 보기 <input type="checkbox" class="qnaDonAnswer" checked>
 		<%
 		}
 		%>
 	</div>
-	<div><a href="<%=request.getContextPath()%>/admin/insertQnaForm.jsp">Q&A 작성하기</a></div>
+	
+	<!-- 전자책 목록 출력 : 카테고리별 출력 -->
+	<div class="container-fluid">
+		<table class="table" style="text-align:center; display:table;">
+			<thead>
+				<tr>
+					<th width="15%">qna_no</th>
+					<th width="10%">qna_category</th>
+					<th width="15%">qna_title</th>
+					<th width="8%">member_no</th>
+					<th width="12%">createDate</th>
+					<th width="12%">updateDate</th>
+					<th width="8%">상태</th>
+					<th width="25%"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<%
+					for(Qna q : qnaList){
+				%>
+						<tr>
+							<td style="display:table-cell;vertical-align:middle;"><%=q.getQnaNo() %></td>
+							<td style="display:table-cell;vertical-align:middle;"><%=q.getQnaCategory() %></td>
+							<td style="display:table-cell;vertical-align:middle;"><%=q.getQnaTitle() %></td>
+							<td style="display:table-cell;vertical-align:middle;"><%=q.getMemberNo() %>(
+							<%
+							ArrayList<Member> member = memberDao.selectMemberOne(q.getMemberNo());
+							for(Member m : member){
+							%>
+								<%=m.getMemberName() %>
+							<%	
+							}
+							%>
+							)	
+							</td>
+							<td style="display:table-cell;vertical-align:middle;"><%=q.getCreateDate() %></td>
+							<td style="display:table-cell;vertical-align:middle;"><%=q.getUpdateDate() %></td>
+							<td style="display:table-cell;vertical-align:middle;">
+							<%
+							boolean qnaState = qnaCommentDao.selectQnaAnswerState(q.getQnaNo());
+							if(qnaState == true){
+							%>
+							답변완료
+							<%
+							}
+							%>
+							</td>
+							<td style="display:table-cell;vertical-align:middle;">
+								<!-- selectEbookOne.jsp -->
+								<a href="<%=request.getContextPath()%>/admin/selectQnaOne.jsp?qnaNo=<%=q.getQnaNo()%>" class="btn btn-outline-secondary">상세보기</a>
+							</td>
+						</tr>
+				<%
+					}
+				%>
+			</tbody>	
+		</table>
+		
+		
+		<%
+		if(!(qnaList).isEmpty()){
+		%>
+		<!-- 하단 네비게이션 바 -->
+		<div style="margin: auto; text-align: center;">
+			<a class="btn btn-primary" href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=1">처음으로</a>
+		<%
+			if(currentPage != 1){
+		%>
+				<a class="btn btn-primary" href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=<%=currentPage-1%>">이전</a>
+		<%
+			}
+			
+			int lastPage = qnaDao.selectQnaLastPage(ROW_PER_PAGE);
+			
+			int displayPage = 10;
+			
+			int startPage = ((currentPage - 1) / displayPage) * displayPage + 1;
+			int endPage = startPage + displayPage - 1;
+			
+			for(int i=startPage; i<=endPage; i++) {
+				if(endPage<=lastPage){
+		%>
+					<a class="btn btn-primary" href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=<%=i%>"><%=i%> </a>
+		<%
+				} else if(endPage>lastPage){
+		%>
+					<a class="btn btn-primary" href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=<%=i%>"><%=i%> </a>
+		<%
+				}
+				if(i == lastPage){
+					break;
+				}
+			}
+			if(currentPage != lastPage){
+			%>
+				<a class="btn btn-primary" href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=<%=currentPage+1%>">다음</a>
+			<%
+			}
+			%>
+			<a class="btn btn-primary" href="<%=request.getContextPath()%>/admin/selectQnaList.jsp?currentPage=<%=lastPage%>">끝으로</a>
+		</div>
+	<%
+		}
+	%>
+	</div>
+	
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+	// 체크박스 체크 -> 답글달지 않은 글 목록만 보기 
+	$(document).ready(function(){
+	    $(".qnaDonAnswer").change(function(){
+	        if($(".qnaDonAnswer").is(":checked")){
+	            location.replace('<%=request.getContextPath() %>/admin/selectQnaList.jsp?donAnswer=true');
+	        }else{
+	        	location.replace('<%=request.getContextPath() %>/admin/selectQnaList.jsp?donAnswer=false');
+	        }
+	    });
+	});
+</script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-

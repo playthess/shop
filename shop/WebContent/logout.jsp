@@ -1,5 +1,6 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <%
-	session.invalidate(); // 사용자의 세션을 새로운 세션으로 갱신
-	response.sendRedirect("./index.jsp");
+	session.invalidate(); // 사용자 세션 초기화
+	response.sendRedirect("index.jsp"); // 돌려보냄
 %>

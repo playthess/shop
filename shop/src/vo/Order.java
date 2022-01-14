@@ -5,14 +5,8 @@ public class Order {
 	private int ebookNo;	// private Ebook ebook;
 	private int memberNo;	// private Member member;
 	private int orderPrice;
-	private String createDate;
-	private String updateDate;
-	
-	@Override
-	public String toString() {
-		return "Order [orderNo=" + orderNo + ", ebookNo=" + ebookNo + ", memberNo=" + memberNo + ", orderPrice="
-				+ orderPrice + ", createDate=" + createDate + ", updateDate=" + updateDate + "]";
-	}
+	private String create_date;
+	private String update_date;
 	public int getOrderNo() {
 		return orderNo;
 	}
@@ -37,16 +31,23 @@ public class Order {
 	public void setOrderPrice(int orderPrice) {
 		this.orderPrice = orderPrice;
 	}
-	public String getCreateDate() {
-		return createDate;
+	public String getCreate_date() {
+		return create_date;
 	}
-	public void setCreateDate(String createDate) {
-		this.createDate = createDate;
+	public void setCreate_date(String create_date) {
+		this.create_date = create_date;
 	}
-	public String getUpdateDate() {
-		return updateDate;
+	public String getUpdate_date() {
+		return update_date;
 	}
-	public void setUpdateDate(String updateDate) {
-		this.updateDate = updateDate;
+	public void setUpdate_date(String update_date) {
+		this.update_date = update_date;
 	}
+	@Override
+	public String toString() {
+		return "Order [orderNo=" + orderNo + ", ebookNo=" + ebookNo + ", memberNo=" + memberNo + ", orderPrice="
+				+ orderPrice + ", create_date=" + create_date + ", update_date=" + update_date + "]";
+	}
+	
+	
 }

@@ -6,12 +6,6 @@ public class QnaComment {
 	private int memberNo;
 	private String createDate;
 	private String updateDate;
-	
-	@Override
-	public String toString() {
-		return "QnaComment [qnaNo=" + qnaNo + ", qnaCommentContent=" + qnaCommentContent + ", memberNo=" + memberNo
-				+ ", createDate=" + createDate + ", updateDate=" + updateDate + "]";
-	}
 	public int getQnaNo() {
 		return qnaNo;
 	}
@@ -41,6 +35,11 @@ public class QnaComment {
 	}
 	public void setUpdateDate(String updateDate) {
 		this.updateDate = updateDate;
+	}
+	@Override
+	public String toString() {
+		return "QnaComment [qnaNo=" + qnaNo + ", qnaCommentContent=" + qnaCommentContent + ", memberNo=" + memberNo
+				+ ", createDate=" + createDate + ", updateDate=" + updateDate + "]";
 	}
 	
 }

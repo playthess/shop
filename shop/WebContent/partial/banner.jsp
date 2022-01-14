@@ -12,6 +12,6 @@
 </head>
 
 	<div class="container-fluid jumbotron text-center" style="margin-bottom:0">
-		<h1><a href="<%=request.getContextPath()%>/index.jsp">E-book</a></h1>
-		<p>인터넷 서점 사이트</p> 
+		<h1><a href="<%=request.getContextPath()%>/index.jsp">E-Book</a></h1>
+		<p>인터넷 서점 샘플 사이트</p> 
 	</div>

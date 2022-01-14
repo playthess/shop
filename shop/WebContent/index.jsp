@@ -1,89 +1,100 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import = "java.util.ArrayList" %>
 <%@ page import = "vo.*" %>
-<%@ page import = "dao.*" %>
-<%@ page import = "java.util.*" %>
+<%@ page import = "model.*" %>
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>index.jsp</title>
+  <title>쇼핑몰 샘플</title>	<!-- index 페이지 -->
+  <meta charset="utf-8">
   <!-- https://www.w3schools.com/ 부트스트랩 적용 -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </head>
 <body>
-	<!-- submenu 인클루드(include) 시작 -->
-	<div class="container-fluid">
+<%
+	//인코딩
+	request.setCharacterEncoding("utf-8");
+	
+	// 현재 페이지
+	int currentPage = 1;
+	
+	// 로그인 상태라면 세션유지
+	Member loginMember = (Member)session.getAttribute("loginMember");
+	if(loginMember != null){
+		session.setMaxInactiveInterval(30*60);
+	}
+	
+	
+%>
+<div class="container-fluid">
 	<!-- 배너 -->
 	<jsp:include page="/partial/banner.jsp"></jsp:include>
 		<!-- start : mainMenu include -->
 		<div>
 			<jsp:include page="/partial/mainMenu.jsp"></jsp:include>
 	</div>
-	<!-- submenu 인클루드 끝 -->
-	<div>
-		<!-- 로그인 작업 -->
-			<%
-				if(session.getAttribute("loginMember") == null) {
-			%>
-					<div><a href="<%=request.getContextPath() %>/loginForm.jsp" class="btn btn-outline-dark">로그인</a></div>
-					<div><a href="<%=request.getContextPath() %>/insertMemberForm.jsp" class="btn btn-outline-dark">회원가입</a></div>
-					<div><a href="<%=request.getContextPath() %>/noticeForm.jsp" class="btn btn-outline-dark">공지사항</a></div>
-			<%		
-				} else {
-					Member loginMember = (Member)session.getAttribute("loginMember");
-			%>
-				<!-- 로그인 후-->
-				<div>
-					<%=loginMember.getMemberId()%>님 반갑습니다.
-					<a href="<%=request.getContextPath()%>/logout.jsp">로그아웃</a>
-					<a href="<%=request.getContextPath()%>">회원정보</a>
-					<a href="<%=request.getContextPath()%>/selectOrderListByMember.jsp">나의주문</a>
-				</div>
-				
-				<!-- 관리자 페이지로 가는 링크 -->
-			<%
-					if(loginMember.getMemberLevel() > 0) {
-			%>
-						<div><a href="<%=request.getContextPath()%>/admin/adminIndex.jsp">관리자 페이지</a></div>
-			<%
-					}
-				}
-			%>
-	</div>
-	<!-- 상품 목록 -->
+	<!-- end : mainMenu include -->
+	<!-- 본문 -->
 	<%
 		// 페이징
-		int currentPage = 1;
-		if (request.getParameter("currentPage") != null) {
+		if(request.getParameter("currentPage") != null){
 			currentPage = Integer.parseInt(request.getParameter("currentPage"));
 		}
-		final int ROW_PER_PAGE = 10; // rowPerPage변수 10으로 초기화되면 끝까지 10을 써야 한다. --> 상수
-		int beginRow = (currentPage - 1) * ROW_PER_PAGE;
-	
-		// 전체 목록
-		EbookDao ebookDao = new EbookDao();
+		System.out.println("[Debug] currentPage : "+currentPage);
 		
-		ArrayList<Ebook> ebookList = ebookDao.selectEbookList(beginRow, ROW_PER_PAGE);
+		final int ROW_PER_PAGE = 10; // rowPerPage변수 10으로 초기화되면 끝까지 10을 써야 한다. --> 상수
+		
+		int beginRow = (currentPage-1)*ROW_PER_PAGE;
+		
+		// 화면에 표시할 버튼 갯수
+		int displayPage = 10;
+		
+		int startPage = ((currentPage - 1) / displayPage) * displayPage + 1;
+		int endPage = startPage + displayPage - 1;
+		
+		// 구현 코드
+		EbookDao ebookDao = new EbookDao();
+		ArrayList<Ebook> ebookList = new ArrayList<>();
+		
+		String category = "";
+		if(request.getParameter("category") != null){
+			category = request.getParameter("category");
+		}
+		
+		// 목록
+		if(category.equals("")){
+			ebookList = ebookDao.selectEbookList(beginRow, ROW_PER_PAGE);
+		} else {
+			ebookList = ebookDao.selectEbookListByCategory(beginRow, ROW_PER_PAGE, category);
+		}
+		
+		// 마지막페이지 도출
+		int lastPage = ebookDao.selectEbookLastPage(ROW_PER_PAGE,category);
 		
 		// 인기 목록 5개(많이 주문된 5개의 ebook)
 		ArrayList<Ebook> popularEbookList = ebookDao.selectPopularEbookList();
-		// 신상품 목록 5개
-		ArrayList<Ebook> createEbookList = ebookDao.selectCreateEbookList();
+		ArrayList<Ebook> NewEbookList = ebookDao.selectNewEbookList();
+		
+		// 공지 최근 5개
 		NoticeDao noticeDao = new NoticeDao();
-		// 최근 공지사항 5개
-		ArrayList<Notice> createNoticeList = noticeDao.selectCreateEbookList();
-	%>
+		ArrayList<Notice> notice = noticeDao.selectNoticeList(0, 5);
+		
+		%>
+	
+	<!-- 최근 공지 5개 출력 -->
 	<div class="container-fluid" style="text-align: center">
 		<br>
 		<h1>공지사항</h1>
 		<br>
 		<table class="table">
 		<%
-		for(Notice n : createNoticeList)	{
+		for(Notice n : notice)	{
 		%>
 			<tr>		
 				<td>
@@ -97,6 +108,11 @@
 		</table>
 	</div>
 	
+	<!-- 상품 목록이 하나 이상 있을 경우에만 출력. -->
+	<%
+	if(!(ebookList).isEmpty()){
+	%>
+	
 	<!-- 신간도서 5개 출력 -->
 	<div class="container-fluid" style="text-align: center">
 		<br>
@@ -105,7 +121,7 @@
 		<table class="table">
 			<tr>
 				<%
-				for(Ebook e : createEbookList)	{
+				for(Ebook e : NewEbookList)	{
 				%>
 				<td>
 					<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><img src="<%=request.getContextPath() %>/image/<%=e.getEbookImg() %>" width="170" height="200"></a></div>
@@ -141,11 +157,47 @@
 		</table>
 	</div>
 	
-	<div class="container-fluid" style="text-align: center">
-	<br>
-	<h2>전체 상품 목록</h2>
-	<br>
-	<table class="table">
+	
+	
+	<div class="container-fluid" style="text-align: center" id="EbookListID">
+		<br>
+		<h1>상품 목록</h1>
+		<br>
+		<!-- 상단 네비게이션 바
+		<div style="margin: auto; text-align: center;">
+			<a class="btn btn-outline-secondary" href="<%=request.getContextPath()%>/index.jsp?currentPage=1&category=<%=category%>">처음으로</a>
+		<%
+			if(currentPage != 1){
+		%>
+				<a class="btn btn-outline-secondary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=currentPage-1%>&category=<%=category%>">이전</a>
+		<%
+			}
+	
+			for(int i=startPage; i<=endPage; i++) {
+				if(endPage<=lastPage){
+		%>
+					<a class="btn btn-outline-secondary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=i%>&category=<%=category%>"><%=i%> </a>
+		<%
+				} else if(endPage>lastPage){
+		%>
+					<a class="btn btn-outline-secondary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=i%>&category=<%=category%>"><%=i%> </a>
+		<%
+				}
+				if(i == lastPage){
+					break;
+				}
+			}
+			if(currentPage != lastPage){
+			%>
+				<a class="btn btn-outline-secondary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=currentPage+1%>&category=<%=category%>">다음</a>
+			<%
+			}
+			%>
+			<a class="btn btn-outline-secondary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=lastPage%>&category=<%=category%>">끝으로</a>
+		</div>
+		
+	-->
+		<table class="table">
 			<tr>
 			<%
 				int b = 0;
@@ -170,7 +222,64 @@
 			</tr>
 		</table>
 	</div>
-	<div>copyright goodee GDJ40</div>
+	
+	<!-- 하단 네비게이션 바 -->
+	<div style="margin: auto; text-align: center;">
+		<a class="btn btn-primary" href="<%=request.getContextPath()%>/index.jsp?currentPage=1&category=<%=category%>&scrollHeight=1">처음으로</a>
+	<%
+		if(currentPage != 1){
+	%>
+			<a class="btn btn-primary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=currentPage-1%>&category=<%=category%>&scrollHeight=1">이전</a>
+	<%
+		}
+
+		for(int i=startPage; i<=endPage; i++) {
+			if(endPage<=lastPage){
+	%>
+				<a class="btn btn-primary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=i%>&category=<%=category%>&scrollHeight=1"><%=i%> </a>
+	<%
+			} else if(endPage>lastPage){
+	%>
+				<a class="btn btn-primary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=i%>&category=<%=category%>&scrollHeight=1"><%=i%> </a>
+	<%
+			}
+			if(i == lastPage){
+				break;
+			}
+		}
+		if(currentPage != lastPage){
+		%>
+			<a class="btn btn-primary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=currentPage+1%>&category=<%=category%>&scrollHeight=1">다음</a>
+		<%
+		}
+		%>
+		<a class="btn btn-primary" href="<%=request.getContextPath()%>/index.jsp?currentPage=<%=lastPage%>&category=<%=category%>&scrollHeight=1">끝으로</a>
+	</div>
+	<%
+	} else {
+	%>
+		<div class="container-fluid" style="text-align: center">
+			상품목록이 비어있습니다.
+		</div>
+	<%
+	}
+	%>
+	
 </div>
+	<!-- 상품 검색을 위한 페이징 시 스크롤을 아래에 배치 -->
+	<%
+	if(request.getParameter("scrollHeight") != null){
+	%>
+		<script>document.documentElement.scrollTop = document.body.scrollHeight;</script>
+	<%
+	}
+	%>
+	<%
+	if(request.getParameter("category")!="" && request.getParameter("category")!=null){
+	%>
+		<script>document.documentElement.scrollTop = document.body.scrollHeight;</script>
+	<%
+	}
+	%>
 </body>
 </html>

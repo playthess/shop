@@ -4,14 +4,16 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>test.jsp</title>
+<title>Insert title here</title>
 </head>
 <body>
-	<!-- start : submenu include -->
+<!-- start : mainMenu include -->
 	<div>
 		<jsp:include page="/partial/mainMenu.jsp"></jsp:include>
 	</div>
-	<!-- end : submenu include -->
+	
+	<!-- end : mainMenu include -->
+
 	<h1>test page</h1>
 </body>
 </html>

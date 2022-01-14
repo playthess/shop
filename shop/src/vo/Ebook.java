@@ -1,28 +1,19 @@
 package vo;
 
 public class Ebook {
-	public int ebookNo;
-	public String ebookISBN;
-	public String categoryName;
-	public String ebookTitle;
-	public String ebookAuthor;
-	public String ebookCompany;
-	public int ebookPageCount;
-	public int ebookPrice;
-	public String ebookImg;
-	public String ebookSummary;
-	public String ebookState;
-	public String createDate;
-	public String updateDate;
-	// toString()메서드 오버라이딩 -> 디버깅할때마다 S.o.p() 10번이상 호출해야됨..
-	@Override
-	public String toString() {
-		return "Ebook [ebookNo=" + ebookNo + ", ebookISBN=" + ebookISBN + ", categoryName=" + categoryName
-				+ ", ebookTitle=" + ebookTitle + ", ebookAuthor=" + ebookAuthor + ", ebookCompany=" + ebookCompany
-				+ ", ebookPageCount=" + ebookPageCount + ", ebookPrice=" + ebookPrice + ", ebookImg=" + ebookImg
-				+ ", ebookSummary=" + ebookSummary + ", ebookState=" + ebookState + ", createDate=" + createDate
-				+ ", updateDate=" + updateDate + "]";
-	}
+	   public int ebookNo;
+	   public String ebookISBN;
+	   public String categoryName;
+	   public String ebookTitle;
+	   public String ebookAuthor;
+	   public String ebookCompany;
+	   public int ebookPageCount;
+	   public int ebookPrice;
+	   public String ebookImg;
+	   public String ebookSummary;
+	   public String ebookState;
+	   public String createDate;
+	   public String updateDate;
 	public int getEbookNo() {
 		return ebookNo;
 	}
@@ -101,4 +92,13 @@ public class Ebook {
 	public void setUpdateDate(String updateDate) {
 		this.updateDate = updateDate;
 	}
-}
+	@Override
+	public String toString() {
+		return "Ebook [ebookNo=" + ebookNo + ", ebookISBN=" + ebookISBN + ", categoryName=" + categoryName
+				+ ", ebookTitle=" + ebookTitle + ", ebookAuthor=" + ebookAuthor + ", ebookCompany=" + ebookCompany
+				+ ", ebookPageCount=" + ebookPageCount + ", ebookPrice=" + ebookPrice + ", ebookImg=" + ebookImg
+				+ ", ebookSummary=" + ebookSummary + ", ebookState=" + ebookState + ", createDate=" + createDate
+				+ ", updateDate=" + updateDate + "]";
+	}
+	   
+}	   

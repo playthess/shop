@@ -1,64 +1,117 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="vo.*" %>
-<%@ page import="dao.*" %>
-<%@ page import="java.util.*" %>
-<%
-	//한글인코딩
-	request.setCharacterEncoding("utf-8");
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import = "java.util.ArrayList" %>
+<%@ page import = "vo.*" %>
+<%@ page import = "model.*" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <title>문의 상세 - 관리자</title>	<!-- 관리자 문의 상세 페이지 -->
+  <style>
 
-	// 로그인 방어코드
+	ul {
+	    list-style: none;
+	    margin:0px; padding:0px;
+	 }
+
+  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+<%
+	//인코딩
+	request.setCharacterEncoding("utf-8");
+	
+	//인증 방어 코드 : 로그인 후, MemgerLevel이 1이상인 경우에만 페이지 열람 가능
+	// session.getAttribute("loginMember") --> null
 	Member loginMember = (Member)session.getAttribute("loginMember");
-	// 로그인 멤버값이 없거나 memberLevel이 1미만(일반 사용자)일때는 접근 불가. 
-	// 순서를 바꾸면안됨(바꾸면 null포인트 인셉션이 일어남).
-	if(loginMember==null || loginMember.getMemberLevel() < 1){
+	if(loginMember == null || loginMember.getMemberLevel() <1 ){
 		response.sendRedirect(request.getContextPath()+"/index.jsp");
 		return;
 	}
+	session.setMaxInactiveInterval(30*60);
 	
 	int qnaNo = Integer.parseInt(request.getParameter("qnaNo"));
-	int memberNo =Integer.parseInt(request.getParameter("memberNo"));
-	QnaDao qnaDao = new QnaDao();
-	Qna qna = qnaDao.selectQnaOne(qnaNo);
 	
-	Member member = new Member();
+	QnaDao qnaDao = new QnaDao();
+	ArrayList<Qna> qna = qnaDao.selectQnaOne(qnaNo);
+	
+	QnaCommentDao qnaCommentDao = new QnaCommentDao();
+	ArrayList<QnaComment> qnaComment = qnaCommentDao.selectQnaCommentOne(qnaNo);
+	
 	MemberDao memberDao = new MemberDao();
 	
-	member = memberDao.selectMemberOne(memberNo);
-%>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Q&A상세보기</title>
-</head>
-	<!-- submenu 인클루드(include) 시작 -->
-	<div>
-		<!-- ./같은위치/partial폴더/submenu.jsp(webContent,상대주소) , /shop/partial/submenu.jsp(프로젝트기준,절대주소),/partial/submenu.jsp(절대주소)-->
-		<jsp:include page="/partial/adminMenu.jsp"></jsp:include><!-- jsp액션태그 -->
-	</div>
-	<!-- submenu 인클루드 끝 -->
-<body>
-	<table border="1">
-		<tr>
-			<td>글번호</td>
-			<td><%=qnaNo %></td>
-		</tr>
-		<tr>
-			<td>제목</td>
-			<td><%=qna.getQnaTitle() %></td>
-		</tr>
-		<tr>
-			<td>내용</td>
-			<td width="600" height="400"><%=qna.getQnaContent() %></td>
-		</tr>
-		<tr>
-			<td style="text-align:center;" colspan="3">
-				댓글
-			</td>
-		</tr>
-		<tr>
-		</tr>
-	</table>
 
+%>
+<div class="container-fluid">
+	<!-- 배너 -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- start : mainMenu include -->
+		<div>
+			<jsp:include page="/partial/mainMenu.jsp"></jsp:include>
+		</div>
+		<!-- end : mainMenu include -->
+	<div class="container" style="text-align: center">
+		<% for(Qna q : qna){%>
+		<h1><%=q.getQnaTitle() %> 상세</h1>
+		<br>
+		<ul>
+			<li>작성자 : <% ArrayList<Member> member = memberDao.selectMemberOne(q.getMemberNo());
+				for(Member m : member){%><%=m.getMemberName() %><%	}%></li>
+			<%
+			if(q.getCreateDate().equals(q.getUpdateDate())){
+			%>	
+				<li>추가일 : <%=q.getCreateDate() %></li>
+			<%
+				} else {
+			%>
+				<li>마지막 변경일 : <%=q.getUpdateDate() %></li>
+			<%
+				}
+			%>
+			<li>카테고리 : <%=q.getQnaCategory() %></li>
+			<li>　</li>
+			<li>내용</li>
+		</ul>
+		<ul style="background-color:lightyellow">
+			<li ><%=q.getQnaContent() %></li>
+		</ul>
+		<br>
+		<a href="<%=request.getContextPath()%>/admin/insertQnaCommentForm.jsp?qnaNo=<%=q.getQnaNo() %>" class="btn btn-outline-secondary">답글달기</a>
+		<br>
+		<br>
+		<a href="<%=request.getContextPath()%>/deleteQnaAction.jsp?qnaNo=<%=q.getQnaNo() %>" onclick="return confirm('정말로 삭제하시겠습니까?');" class="btn btn-outline-secondary">삭제</a>
+		<% } %>
+	</div>
+	
+	<%
+	if(!(qnaComment).isEmpty()){
+	%>
+	<div class="container" style="text-align: center">
+		<br>
+		<h4>답변</h4>
+		<%
+		for(QnaComment c : qnaComment){
+		%>
+		<br>
+		<ul style="background-color:lightblue; color:magenta">
+				<li ><%=c.getQnaCommentContent() %></li>
+		</ul>
+		<%
+		}
+		%>
+	
+	</div>
+	<%
+	}
+	%>
+	
+</div>
 </body>
 </html>

@@ -1,56 +1,50 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="vo.*" %>
-<%@ page import = "dao.*" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import = "vo.*" %>
+<%@ page import = "model.*" %>
+
 <%
-	// insertOrderAction.jsp 디버깅 구분선
-	System.out.println("----------insertOrderAction.jsp----------");
+	// 인코딩
 	request.setCharacterEncoding("utf-8");
-	
-	// orderDao 객체 생성
-	OrderDao orderDao = new OrderDao();
-		
-	// login된 회원인지 확인하는 방어코드
-	// session에 저장된 loginMember를 받아옴
-	Member loginMember = (Member)session.getAttribute("loginMember");
-	// loginMember가 null이면 이 페이지를 들어올 수 없음
-	if(loginMember == null){
+
+	//받은 값에 null이 있으면 되돌아감
+	if(request.getParameter("ebookNo") == null || request.getParameter("ebookNo").equals("") ){
+		response.sendRedirect(request.getContextPath()+"/index.jsp");
+		return;
+	} else if(request.getParameter("memberNo") == null || request.getParameter("memberNo").equals("")){
+		response.sendRedirect(request.getContextPath()+"/index.jsp");
+		return;
+	} else if(request.getParameter("orderPrice") == null || request.getParameter("orderPrice").equals("")){
 		response.sendRedirect(request.getContextPath()+"/index.jsp");
 		return;
 	}
 	
-	// 입력값 방어 코드
-	// 추가할 후기의 정보를 다 입력했는지 확인하는 코드
-	if(request.getParameter("ebookNo")==null || request.getParameter("ebookPrice")==null || request.getParameter("memberNo")==null) {
-		response.sendRedirect(request.getContextPath()+"/index.jsp");
-		return;
-	}
-	if(request.getParameter("ebookNo").equals("") || request.getParameter("ebookPrice").equals("") || request.getParameter("memberNo").equals("")){
-		response.sendRedirect(request.getContextPath()+"/index.jsp");
-		return;
-	}
-	
-	// request 값 저장
+	// 값 받아와서 변수선언
 	int ebookNo = Integer.parseInt(request.getParameter("ebookNo"));
-	int ebookPrice = Integer.parseInt(request.getParameter("ebookPrice"));
 	int memberNo = Integer.parseInt(request.getParameter("memberNo"));
+	int orderPrice = Integer.parseInt(request.getParameter("orderPrice"));
 	
-	// requst 매개값 디버깅 코드
-	System.out.println(ebookNo+"<-- ebookNo");
-	System.out.println(ebookPrice+"<-- ebookPrice");
-	System.out.println(memberNo+"<-- memberNo");
+	// request값 디버깅
+	System.out.println("[Debug] ebookNo : "+ebookNo);
+	System.out.println("[Debug] memberNo : "+memberNo);
+	System.out.println("[Debug] orderPrice : "+orderPrice);
 	
-	// paramOrder 객체 생성 후, 받아온 값 저장
-	Order paramOrder = new Order();
-	paramOrder.setEbookNo(ebookNo);
-	paramOrder.setMemberNo(memberNo);
-	paramOrder.setOrderPrice(ebookPrice);
+	// dao, vo
+	OrderDao orderDao = new OrderDao();
+	Order order = new Order();
 	
-	// 전자책을 주문하는 orderDao의 insertOrder 메서드 호출
-	if(orderDao.insertOrder(paramOrder)) {
-		System.out.println("주문 성공!");
-	} else {
-		System.out.println("주문 실패");
-	}
-	response.sendRedirect(request.getContextPath()+"/selectOrderListByMember.jsp");
+	// vo에 값 셋팅
+	order.setEbookNo(ebookNo);
+	order.setMemberNo(memberNo);
+	order.setOrderPrice(orderPrice);
+	
+	// 디버그
+	System.out.println("[Debug] order : "+order);
+	
+	// orderDao.insertOrderByMember 호출
+	orderDao.insertOrderByMember(order);
+	
+	// 돌려보냄
+	response.sendRedirect(request.getContextPath()+"/orderComplete.jsp?memberNo="+memberNo+"&ebookNo="+ebookNo);
 	
 %>

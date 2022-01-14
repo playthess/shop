@@ -5,12 +5,6 @@ public class Category {
 	private String categoryState;
 	private String updateDate;
 	private String createDate;
-	
-	@Override
-	public String toString() {
-		return "Category [categoryName=" + categoryName + ", categoryState=" + categoryState + ", updateDate="
-				+ updateDate + ", createDate=" + createDate + "]";
-	}
 	public String getCategoryName() {
 		return categoryName;
 	}
@@ -35,5 +29,10 @@ public class Category {
 	public void setCreateDate(String createDate) {
 		this.createDate = createDate;
 	}
-	
+	@Override
+	public String toString() {
+		return "Category [categoryName=" + categoryName + ", categoryState=" + categoryState + ", updateDate="
+				+ updateDate + ", createDate=" + createDate + "]";
+	}
+
 }

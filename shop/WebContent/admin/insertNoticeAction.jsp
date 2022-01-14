@@ -1,34 +1,57 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import = "dao.*"%>
-<%@ page import = "vo.*"%>
-<%@ page import = "java.util.*" %>
+<%@ page import="model.*" %>
+<%@ page import="vo.*" %>
 <%
+	//encoding
 	request.setCharacterEncoding("utf-8");
-	//로그인시 접근불가(로그인상태와 회원가입정보가 null일때 접근 불가)
-	Member loginMember = (Member)session.getAttribute("loginMember");
-	if(loginMember == null || loginMember.getMemberLevel() < 1){	//로그인이 된 상태(로그인멤버값이 null인 상태)
-		//브라우저에게 다른곳을 '요청'(위치로 보내는 것(go)이 아닌(보내주는 것이 아니라 간 것) 해당 위치로 내보내는(rollback) 것(쫒아내는 것,되돌리는 것))
-		response.sendRedirect(request.getContextPath()+"/index.jsp");	//로그인이 된 상태니 인덱스로
-		return;
-		}
+
+	int memberNo = 0;
+	String noticeTitle = "";
+	String noticeContent = "";
 	
-		String noticeTitle = request.getParameter("noticeTitle");
-		String noticeContent = request.getParameter("noticeContent");
-		
-		//디버깅 request매게값 디버깅코드
-		System.out.println("noticeTitle :"+noticeTitle);
-		System.out.println("noticeContent :"+noticeContent);
-		
-		
-		Notice notice = new Notice();
-		notice.setNoticeTitle(noticeTitle);
-		notice.setNoticeContent(noticeContent);
-		
-		NoticeDao noticeDao = new NoticeDao();
-		
-		noticeDao.insertNotice (notice);
-		
-		response.sendRedirect(request.getContextPath()+"/index.jsp");
+	
+	noticeTitle = request.getParameter("noticeTitle");
+	noticeContent = request.getParameter("noticeContent");
+	memberNo = Integer.parseInt(request.getParameter("memberNo"));
+	
+	// 디버그
+	System.out.println("noticeTitle : " + noticeTitle);
+	System.out.println("noticeContent : " + noticeContent);
+	System.out.println("memberNo : " + memberNo);
+	
+
+	// 방어코드
+	if(request.getParameter("noticeTitle") == null || request.getParameter("noticeTitle").equals("")) {
+		response.sendRedirect(request.getContextPath()+"/admin/insertNoticeForm.jsp");
+		System.out.println("noticeTitle error");
+		return;
+	}
+	if(request.getParameter("noticeContent") == null || request.getParameter("noticeContent").equals("")) {
+		response.sendRedirect(request.getContextPath()+"/admin/insertNoticeForm.jsp");
+		System.out.println("noticeContent error");
+		return;
+	}
+	if(Integer.parseInt(request.getParameter("memberNo")) == 0) {
+		response.sendRedirect(request.getContextPath()+"/admin/insertNoticeForm.jsp");
+		System.out.println("memberNo error");
+		return;
+	}
+	
+	noticeContent = noticeContent.replaceAll("\r\n|\n", "<br>");
+	// dao
+	NoticeDao noticeDao = new NoticeDao();
+	Notice notice = new Notice();
+	notice.setMemberNo(memberNo);
+	notice.setNoticeTitle(noticeTitle);
+	notice.setNoticeContent(noticeContent);
+	
+	// 디버그
+	System.out.println("[Debug] insertNoticeAction notice : "+notice);
+	
+	noticeDao.insertNotice(notice);
+	System.out.println("공지 추가 성공");
+	response.sendRedirect(request.getContextPath() + "/admin/selectNoticeList.jsp");
+
 
 %>

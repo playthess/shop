@@ -1,20 +1,14 @@
 package vo;
 
 public class OrderComment {
-	
+	private int orderCommentNo;
 	private int orderNo;
+	private int memberNo;
 	private int ebookNo;
 	private int orderScore;
-	private String orderCommentContent;
+	private String orderContent;
 	private String createDate;
 	private String updateDate;
-	
-	@Override
-	public String toString() {
-		return "OrderComment [orderNo=" + orderNo + ", ebookNo=" + ebookNo + ", orderScore=" + orderScore
-				+ ", orderCommentContent=" + orderCommentContent + ", createDate=" + createDate + ", updateDate="
-				+ updateDate + "]";
-	}
 	public int getOrderNo() {
 		return orderNo;
 	}
@@ -33,11 +27,11 @@ public class OrderComment {
 	public void setOrderScore(int orderScore) {
 		this.orderScore = orderScore;
 	}
-	public String getOrderCommentContent() {
-		return orderCommentContent;
+	public String getOrderContent() {
+		return orderContent;
 	}
-	public void setOrderCommentContent(String orderCommentContent) {
-		this.orderCommentContent = orderCommentContent;
+	public void setOrderContent(String orderContent) {
+		this.orderContent = orderContent;
 	}
 	public String getCreateDate() {
 		return createDate;
@@ -51,5 +45,24 @@ public class OrderComment {
 	public void setUpdateDate(String updateDate) {
 		this.updateDate = updateDate;
 	}
-
+	public int getMemberNo() {
+		return memberNo;
+	}
+	public void setMemberNo(int memberNo) {
+		this.memberNo = memberNo;
+	}
+	
+	public int getOrderCommentNo() {
+		return orderCommentNo;
+	}
+	public void setOrderCommentNo(int orderCommentNo) {
+		this.orderCommentNo = orderCommentNo;
+	}
+	@Override
+	public String toString() {
+		return "OrderComment [orderNo=" + orderNo + ", memberNo=" + memberNo + ", ebookNo=" + ebookNo + ", orderScore="
+				+ orderScore + ", orderContent=" + orderContent + ", createDate=" + createDate + ", updateDate="
+				+ updateDate + "]";
+	}
+	
 }

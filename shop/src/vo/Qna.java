@@ -2,6 +2,7 @@ package vo;
 
 public class Qna {
 	private int qnaNo;
+	private int ebookNo;
 	private String qnaCategory;
 	private String qnaTitle;
 	private String qnaContent;
@@ -9,13 +10,6 @@ public class Qna {
 	private int memberNo;
 	private String createDate;
 	private String updateDate;
-	
-	@Override
-	public String toString() {
-		return "Qna [qnaNo=" + qnaNo + ", qnaCategory=" + qnaCategory + ", qnaTitle=" + qnaTitle + ", qnaContent="
-				+ qnaContent + ", qnaSecret=" + qnaSecret + ", memberNo=" + memberNo + ", createDate=" + createDate
-				+ ", updateDate=" + updateDate + "]";
-	}
 	public int getQnaNo() {
 		return qnaNo;
 	}
@@ -63,6 +57,18 @@ public class Qna {
 	}
 	public void setUpdateDate(String updateDate) {
 		this.updateDate = updateDate;
+	}
+	public int getEbookNo() {
+		return ebookNo;
+	}
+	public void setEbookNo(int ebookNo) {
+		this.ebookNo = ebookNo;
+	}
+	@Override
+	public String toString() {
+		return "Qna [qnaNo=" + qnaNo + ", ebookNo=" + ebookNo + ", qnaCategory=" + qnaCategory + ", qnaTitle="
+				+ qnaTitle + ", qnaContent=" + qnaContent + ", qnaSecret=" + qnaSecret + ", memberNo=" + memberNo
+				+ ", createDate=" + createDate + ", updateDate=" + updateDate + "]";
 	}
 	
 }

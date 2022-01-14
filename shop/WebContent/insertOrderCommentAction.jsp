@@ -1,34 +1,53 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="vo.*"%> 
-<%@ page import="dao.*" %>     
+<%@ page import="model.*" %>
+<%@ page import="vo.*" %>
 <%
-	request.setCharacterEncoding("utf-8"); //인코딩	
-	//인증 방어 코드 : 로그인 전 session.getAttribute("loginMember") == null 인 경우
-	if(session.getAttribute("loginMember")==null){
-		System.out.println("로그인 해야됨");
-		response.sendRedirect("./index.jsp"); //로그인 안되면 후기 달수 없음.
+	// 인코딩
+	request.setCharacterEncoding("utf-8");
+	
+	// 값 가져와서 변수선언
+	int orderNo = Integer.parseInt(request.getParameter("orderNo"));
+	int memberNo = Integer.parseInt(request.getParameter("memberNo"));
+	int ebookNo = Integer.parseInt(request.getParameter("ebookNo"));
+	int orderScore = Integer.parseInt(request.getParameter("orderScore"));
+	String orderContent = request.getParameter("orderContent");
+	
+	// 디버그
+	System.out.println("orderNo : " + orderNo);
+	System.out.println("memberNo : " + memberNo);
+	System.out.println("ebookNo : " + ebookNo);
+	System.out.println("orderScore : " + orderScore);
+	System.out.println("orderContent : " + orderContent);
+
+	// 방어코드
+	if(request.getParameter("orderContent") == null || request.getParameter("orderContent").equals("")) {
+		response.sendRedirect(request.getContextPath()+"/index.jsp");
 		return;
 	}
+	
+	// 줄바꿈 변환
+	orderContent = orderContent.replaceAll("\r\n|\n", "<br>");
 
-		
-	request.setCharacterEncoding("utf-8");
-	OrderComment comment = new OrderComment();
-	OrderCommentDao commentDao = new OrderCommentDao();
+	// dao, vo
+	OrderCommentDao orderCommentDao = new OrderCommentDao();
+	OrderComment orderComment = new OrderComment();
 	
-	System.out.println(Integer.parseInt(request.getParameter("orderNo"))+"<--- insertOrderCommentAction - getOrderNo");
-	System.out.println(Integer.parseInt(request.getParameter("ebookNo"))+"<--- insertOrderCommentAction - getEbookNo");
-	System.out.println(request.getParameter("content")+"<--- insertOrderCommentAction - getOrderCommentContent");
-	System.out.println(Integer.parseInt(request.getParameter("score"))+"<--- insertOrderCommentAction - getOrderScore");
-	//check
+	// vo에 값 셋팅
+	orderComment.setOrderNo(orderNo);
+	orderComment.setMemberNo(memberNo);
+	orderComment.setEbookNo(ebookNo);
+	orderComment.setOrderScore(orderScore);
+	orderComment.setOrderContent(orderContent);
 	
-	comment.setOrderNo(Integer.parseInt(request.getParameter("orderNo")));
-	comment.setEbookNo(Integer.parseInt(request.getParameter("ebookNo")));
-	comment.setOrderCommentContent(request.getParameter("content"));
-	comment.setOrderScore(Integer.parseInt(request.getParameter("score")));
+	// orderCommentDao.insertComment 호출
+	orderCommentDao.insertComment(orderComment);
 	
-	//입력후 주문목록 페이지로 
-	commentDao.insertOrderCommentReview(comment);
-	response.sendRedirect(request.getContextPath()+"/selectOrderListByMember.jsp");
+	// 디버그
+	System.out.println("상품평 추가 성공");
 	
+	// 돌려보냄
+	response.sendRedirect(request.getContextPath() + "/selectOrderByMember.jsp");
+
+
 %>

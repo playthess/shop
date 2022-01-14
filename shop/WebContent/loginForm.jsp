@@ -1,58 +1,87 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%
-	// 인증 방어 코드 : 로그인 전에만 페이지 열람 가능
-	// session.getAttribute("loginMember") --> null
-	
-	if(session.getAttribute("loginMember") != null) {
-		System.out.println("이미 로그인 되어 있습니다.");
-		response.sendRedirect(request.getContextPath()+"/index.jsp");
-		return;
-	}
-%>
+<%@ page import = "java.util.ArrayList" %>
+<%@ page import = "vo.*" %>
+<%@ page import = "model.*" %>
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <title>로그인</title>	<!-- 로그인 페이지 -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </head>
 <body>
-	<!-- submenu 인클루드(include) 시작 -->
-	<div>
-		<!-- ./같은위치/partial폴더/submenu.jsp(webContent,상대주소) , /shop/partial/submenu.jsp(프로젝트기준,절대주소),/partial/submenu.jsp(절대주소)-->
-		<jsp:include page="/partial/mainMenu.jsp"></jsp:include><!-- jsp액션태그 -->
+<%
+	// 인코딩
+	request.setCharacterEncoding("utf-8");
+
+	// 현재 페이지
+	int currentPage = 1;
+	if(request.getParameter("currentPage") != null) { 
+		currentPage = Integer.parseInt(request.getParameter("currentPage"));
+	}
+	
+	// 로그인이 틀렸을 경우
+ 	int notEquals = 0;
+ 	if(request.getParameter("notEquals") != null){
+ 		notEquals = Integer.parseInt(request.getParameter("notEquals"));
+ 	}
+%>
+<div class="container-fluid">
+	<!-- 배너 -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- start : mainMenu include -->
+		<div>
+			<jsp:include page="/partial/mainMenu.jsp"></jsp:include>
+		</div>
+		<!-- end : mainMenu include -->
+	<!--  본문 -->
+	<div style="text-align: center">
+		<h1>로그인</h1>
+		<form name="loginForm" method="post" action="<%=request.getContextPath()%>/loginAction.jsp">
+			<div>아이디</div>
+			<div><input type="text" class="memberId" name="memberId" value="admin"></div>
+			<div>비밀번호</div>
+			<div><input type="password" class="memberPw" name="memberPw" value="1234"></div>
+			<br>
+			<div><button type="button" class="btn btn-outline-secondary" onclick="loginBtn()">&nbsp;&nbsp;로그인&nbsp;&nbsp;</button></div>
+		</form>
+		<%
+			if(notEquals == 1){
+		%>
+				<div style="color:red">잘못된 정보입니다.</div>
+		<%
+			} else {
+		%> 
+			<div id="error" style="color:red">　</div>
+		<%
+			}
+		%>
+		<div><a href="<%=request.getContextPath()%>/insertMemberForm.jsp" class="btn btn-outline-secondary">회원가입</a></div>
+		<br>
 	</div>
-	<!-- submenu 인클루드 끝 -->
-	<h1>로그인</h1>
 	
-	<form id="loginForm" class="form-inline" method="post" action="<%=request.getContextPath() %>/loginAction.jsp">
-		<div>memberId : </div>
-		<div><input type="text" id="memberId" name="memberId"  placeholder="Enter id" value="1234"></div>
-		<div>memberPw : </div>
-		<div><input type="password" id="memberPw" name="memberPw" placeholder="Enter password" value="1234"></div>
-		<div><button id="loginBtn" type="button">로그인</button></div>
-	</form>
 	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 	<script>
-		$('#loginBtn').click(function(){
-			// 버턴을 click했을때
-			if($('#memberId').val() == '') { // id 공백이면
-				alert('memberId를 입력하세요');
+		// 유효성검사
+		function loginBtn(){
+			if($(".memberId").val() == "") {
+				document.getElementById("error").innerHTML = 'ID를 입력해주세요.';
 				return;
-			} else if($('#memberPw').val() == '') { // pw 공백이면
-				alert('memberPw를 입력하세요');
+			} else if($(".memberPw").val() == ""){
+				document.getElementById("error").innerHTML = 'PW를 입력해주세요.';
 				return;
 			} else {
-				$('#loginForm').submit(); // <button type="button"> -> <button type="submit">
+				loginForm.submit();
 			}
-		});
+		}
 	</script>
+</div>
 </body>
 </html>
-
-
-
-
-

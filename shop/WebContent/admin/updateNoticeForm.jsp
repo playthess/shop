@@ -1,57 +1,65 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <%@ page import = "vo.*" %>
-<%@ page import = "dao.*" %>
-<%@ page import = "java.util.*" %>
+<%@ page import = "model.*" %>
+<%@ page import = "java.util.ArrayList" %>
 <%
-
+	//인코딩
 	request.setCharacterEncoding("utf-8");
 
-	//관리자 로그인 방어코드
+	//인증 방어 코드 : 로그인 후, MemgerLevel이 1이상인 경우에만 페이지 열람 가능
+	// session.getAttribute("loginMember") --> null
 	Member loginMember = (Member)session.getAttribute("loginMember");
-	// 로그인 멤버값이 없거나 memberLevel이 1미만(일반 사용자)일때는 접근 불가. 
-	// 순서를 바꾸면안됨(바꾸면 null포인트 인셉션이 일어남).
-	if(loginMember==null || loginMember.getMemberLevel() < 1){
+	if(loginMember == null || loginMember.getMemberLevel() <1 ){
 		response.sendRedirect(request.getContextPath()+"/index.jsp");
 		return;
 	}
-
-	int noticeNo = Integer.parseInt(request.getParameter("noticeNo"));
-
-	NoticeDao noticeDao = new NoticeDao();
-	Notice notice = noticeDao.selectNoticeOne(noticeNo);
+	int noticeNo = 0;
+	if(request.getParameter("noticeNo") != null){
+		noticeNo = Integer.parseInt(request.getParameter("noticeNo"));
+	}
+	
 %>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>공지사항 수정</title>
+<title>공지 수정</title>	<!-- 관리자 공지사항 수정 페이지 -->
 </head>
 <body>
-	<!-- submenu 인클루드(include) 시작 -->
+<div class="container-fluid">
+	<!-- 배너 -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- 관리자 메뉴 include -->
 	<div>
-		<!-- ./같은위치/partial폴더/submenu.jsp(webContent,상대주소) , /shop/partial/submenu.jsp(프로젝트기준,절대주소),/partial/submenu.jsp(절대주소)-->
-		<jsp:include page="/partial/adminMenu.jsp"></jsp:include><!-- jsp액션태그 -->
+		<jsp:include page="/partial/adminMenu.jsp"></jsp:include>
 	</div>
-	<!-- submenu 인클루드 끝 -->
-	<h1>공지사항</h1>
-	<form method="post" action="<%=request.getContextPath()%>/admin/updateNoticeAction.jsp">
-		<table border="1">
-			<tr>
-				<td>글번호</td>
-				<td><input type="text" style="border:none" id="noticeNo" name="noticeNo" value="<%=notice.getNoticeNo() %>" readonly="readonly"></td>
-			</tr>
-			<tr>
-				<td>제목</td>
-				<td><input type="text" style="border:none" name="noticeTitle" value="<%=notice.getNoticeTitle() %>"></td>
-			</tr>
-			<tr>
-				<td>내용</td>
-				<td width="600" height="400">
-					<textarea rows="20" cols="100" style="resize: none; border:none;" name="noticeContent"><%=notice.getNoticeContent() %></textarea>
-				</td>
-			</tr>
-		</table>
-		<button type="submit">수정</button>
-	</form>
+		<!-- end : mainMenu include -->
+	<div style="text-align: center">
+		<h1>공지 수정</h1>
+		<br>
+		<form name="UpdateNotice" method="post" action="<%=request.getContextPath() %>/admin/updateNoticeAction.jsp?">
+			<div>내용</div>
+			<div><textarea rows="5" cols="50" class="noticeContent" name="noticeContent"></textarea></div>
+			<div id="error" style="color:red">　</div>
+			<div><input type="hidden" name ="noticeNo" value="<%=noticeNo%>"></div>
+			<div><button type="button" class="btn btn-outline-secondary" onclick="updateNotice()">Submit</button></div>
+		</form>
+	</div>
+	
+	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+	//유효성 검사
+	function updateNotice() {
+		if($(".noticeContent").val() == ""){
+			document.getElementById("error").innerHTML = '값을 입력해주세요.';
+			return;
+		} else{
+			UpdateNotice.submit();
+		}
+	};
+</script>
+</div>
 </body>
 </html>

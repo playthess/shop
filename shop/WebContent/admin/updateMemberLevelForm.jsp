@@ -1,108 +1,62 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="dao.*" %>
-<%@ page import="vo.*" %>
+<%@ page import = "vo.*" %>
+<%@ page import = "model.*" %>
+<%@ page import = "java.util.ArrayList" %>
 <%
-	// 방어코드
-	if(request.getParameter("memberNo") == null) {
-		response.sendRedirect("./selectMemberList.jsp?currentPage=1");
-		return;
-	}
-
-	// encoding
+	//인코딩
 	request.setCharacterEncoding("utf-8");
 
-	int memberNo = Integer.parseInt(request.getParameter("memberNo"));
-	// debug
-	System.out.println("debug " + memberNo + " <-- memberNo");
+	//인증 방어 코드 : 로그인 후, MemgerLevel이 1이상인 경우에만 페이지 열람 가능
+	// session.getAttribute("loginMember") --> null
+	Member loginMember = (Member)session.getAttribute("loginMember");
+	if(loginMember == null || loginMember.getMemberLevel() <1 ){
+		response.sendRedirect(request.getContextPath()+"/index.jsp");
+		return;
+	}
+	session.setMaxInactiveInterval(30*60);
 	
-	// dao
-	MemberDao memberDao = new MemberDao();
+	int memberNo = 0;
+	if(request.getParameter("memberNo") != null){
+		memberNo = Integer.parseInt(request.getParameter("memberNo"));
+	}
+	String memberName = "";
+	if(request.getParameter("memberNo") != null){
+		memberName = request.getParameter("memberName");
+	}
 	
-	Member member = memberDao.selectMemberOne(memberNo);
 %>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Insert title here</title>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<title>회원등급 수정</title>	<!-- 관리자 회원등급 수정 페이지 -->
 </head>
 <body>
-<body>
-<div class="container">
-	<!-- start : 관리자 adminMenu include -->
+<div class="container-fluid">
+	<!-- 배너 -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- 관리자 메뉴 include -->
 	<div>
 		<jsp:include page="/partial/adminMenu.jsp"></jsp:include>
 	</div>
-	<!-- end : 관리자 adminMenu include -->
-	
-	<form method="post" action="./updateMemberLevelAction.jsp">
-		<div class="container p-3 my-3 border">
-			<div class="jumbotron">
-			  <h1>관리자 페이지 - 회원등급 수정</h1>
+		<!-- end : mainMenu include -->
+	<div style="text-align: center">
+		<h1><%=memberNo%> <%=memberName%> - 회원등급수정</h1>
+		<br>
+		<form name="updateMemberLevel" method="post" action="<%=request.getContextPath() %>/admin/updatetMemberLevelAction.jsp?memberNo=<%=memberNo%>">
+			<div>
+				memberLevel &nbsp;
+				<select name="memberLevel">
+					<option value=0>0</option>
+					<option value=1>1</option>
+				</select>
 			</div>
-		
-				<table class="table table-borderless table-hover">
-						<tr class="border-bottom font-weight-bold">
-							<th class="text-right">memberNo</th>
-							<td><input type="text" class="text-center" name="memberNo" value="<%=member.getMemberNo() %>" readonly="readonly"></td>					
-						</tr>
-						<tr class="border-bottom font-weight-bold">					
-							<th class="text-right">memberId</th>
-							<td><input type="text" class="text-center" name="memberId" value="<%=member.getMemberId() %>" readonly="readonly"></td>					
-						</tr>
-						<tr class="border-bottom font-weight-bold">					
-							<th class="text-right">memberPw</th>
-							<td><input type="text" class="text-center" name="memberPw" value="<%=member.getMemberPw() %>" readonly="readonly"></td>					
-						</tr>
-						<tr class="border-bottom font-weight-bold">					
-							<th class="text-right">memberLevel</th>
-								<%
-									String memberLevel0 = null;
-									String memberLevel1 = null;
-									if(member.getMemberLevel() == 0) {
-										memberLevel0 = "checked";
-									} else if(member.getMemberLevel() == 1) {
-										memberLevel1 = "checked";
-									}
-								%>
-							<td>
-								<select name="memberLevel">
-									<option value="0" <%=memberLevel0 %>>0 (일반회원)</option>
-									<option value="1" <%=memberLevel1 %>>1 (관리자)</option>
-								</select>
-							</td>					
-						</tr>
-						<tr class="border-bottom font-weight-bold">					
-							<th class="text-right">memberName</th>
-							<td><input type="text" class="text-center" name="memberName" value="<%=member.getMemberName() %>" readonly="readonly"></td>					
-						</tr>
-						<tr class="border-bottom font-weight-bold">					
-							<th class="text-right">memberAge</th>
-							<td><input type="text" class="text-center" name="memberAge" value="<%=member.getMemberAge() %>" readonly="readonly"></td>					
-						</tr>
-						<tr class="border-bottom font-weight-bold">					
-							<th class="text-right">memberGender</th>
-							<td><input type="text" class="text-center" name="memberGender" value="<%=member.getMemberGender() %>" readonly="readonly"></td>					
-						</tr>
-						<tr class="border-bottom font-weight-bold">					
-							<th class="text-right">updateDate</th>
-							<td><input type="text" class="text-center" name="updateDate" value="<%=member.getUpdateDate() %>" readonly="readonly"></td>				
-						</tr>
-						<tr class="border-bottom font-weight-bold">				
-							<th class="text-right">createDate</th>
-							<td><input type="text" class="text-center" name="createDate" value="<%=member.getCreateDate() %>" readonly="readonly"></td>
-						</tr>
-				</table>
-		</div>
-				
-		<div class="text-center">
-			<button type="submit" class="btn btn-outline-dark">수정</button>
-			<a class="btn btn-outline-dark" href="<%=request.getContextPath() %>/admin/selctMemberOne.jsp??memberNo=<%=member.getMemberNo() %>">취소</a>
-		</div>
-	</form>
+			<br>
+			<div><button type="submit" class="btn btn-outline-secondary" onclick="updateMemberLevel()">Submit</button></div>
+		</form>
+	</div>
+	
 </div>
-</body>
 </body>
 </html>

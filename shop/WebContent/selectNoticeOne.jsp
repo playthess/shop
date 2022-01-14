@@ -1,43 +1,86 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ page import = "java.util.ArrayList" %>
 <%@ page import = "vo.*" %>
-<%@ page import = "dao.*" %>
-<%@ page import = "java.util.*" %>
-<%
-	int noticeNo = Integer.parseInt(request.getParameter("noticeNo"));
-
-	NoticeDao noticeDao = new NoticeDao();
-	Notice notice = noticeDao.selectNoticeOne(noticeNo);
-%>
+<%@ page import = "model.*" %>
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>공지사항 상세보기</title>
+  <title>공지 상세</title>	<!-- 공지 상세 페이지 -->
+  <style>
+
+	ul {
+	    list-style: none;
+	    margin:0px; padding:0px;
+	 }
+
+  </style>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </head>
 <body>
-	<!-- submenu 인클루드(include) 시작 -->
-	<div>
-		<!-- ./같은위치/partial폴더/submenu.jsp(webContent,상대주소) , /shop/partial/submenu.jsp(프로젝트기준,절대주소),/partial/submenu.jsp(절대주소)-->
-		<jsp:include page="/partial/mainMenu.jsp"></jsp:include><!-- jsp액션태그 -->
-	</div>
-	<!-- submenu 인클루드 끝 -->
-	<div class="container-fluid" style="text-align: center">
-	<h1>공지사항</h1>
-	</div>
-	<table border="1">
-		<tr class="table-secondary">
-			<td>제목</td>
-			<td><%=notice.getNoticeTitle() %></td>
-		</tr>
-		<tr class="table-secondary">
-			<td>내용</td>
-			<td><%=notice.getNoticeContent() %></td>
-		</tr>
-	</table>
+<%
+	//인코딩
+	request.setCharacterEncoding("utf-8");
+	
+	// 세션 유지
+	session.setMaxInactiveInterval(30*60);
+	
+	// 값 받아와서 변수 선언
+	int noticeNo = Integer.parseInt(request.getParameter("noticeNo"));
+	
+	// dao -> 호출 -> Array배열
+	NoticeDao noticeDao = new NoticeDao();
+	ArrayList<Notice> notice = noticeDao.selectNoticeOne(noticeNo);
+	
+	// dao
+	MemberDao memberDao = new MemberDao();
+	
+
+%>
+<div class="container-fluid">
+	<!-- 배너 -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- start : mainMenu include -->
+		<div>
+			<jsp:include page="/partial/mainMenu.jsp"></jsp:include>
+		</div>
+		<!-- end : mainMenu include -->
+		
+<!-- 본문 -->
+<div class="container-fluid" style="text-align: center">
+		<!-- for each문 -->
+		<% for(Notice n : notice){%>
+		<h1><%=n.getNoticeTitle() %> 상세</h1>
+		<br>
+		<ul>
+			<li>작성자 : <% ArrayList<Member> member = memberDao.selectMemberOne(n.getMemberNo());
+				for(Member m : member){%><%=m.getMemberName() %><%	}%></li>
+			<%
+			if(n.getCreateDate().equals(n.getUpdateDate())){
+			%>	
+				<li>추가일 : <%=n.getCreateDate() %></li>
+			<%
+				} else {
+			%>
+				<li>마지막 변경일 : <%=n.getUpdateDate() %></li>
+			<%
+				}
+			%>
+			<li>　</li>
+			<li>내용</li>
+		</ul>
+		<ul style="background-color:lightyellow">
+			<li ><%=n.getNoticeContent() %></li>
+		</ul>
+	<% } %>
+</div>
+	
+</div>
 </body>
 </html>

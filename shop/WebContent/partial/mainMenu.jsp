@@ -2,9 +2,10 @@
     pageEncoding="UTF-8"%>
 <%@ page import = "java.util.ArrayList" %>
 <%@ page import = "vo.*" %>
-<%@ page import = "dao.*" %>
+<%@ page import = "model.*" %>
 <%
 	// 회원, 비회원용 네비게이션 메뉴
+
 	// 카테고리 배열로 받아옴
 	CategoryDao categorydao = new CategoryDao();
 	ArrayList<Category> categoryList = new ArrayList<>();

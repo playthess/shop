@@ -1,38 +1,27 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ page import="dao.*" %>
-<%@ page import="vo.*" %>
+<%@ page import = "vo.*" %>
+<%@ page import = "model.*" %>
 <%
-	// encoding
+	//인코딩
 	request.setCharacterEncoding("utf-8");
-
+	
 	int memberNo = Integer.parseInt(request.getParameter("memberNo"));
 	String memberPw = request.getParameter("memberPw");
 	
-	// debug
-	System.out.println("비밀번호수정" + memberNo);
-	System.out.println("비밀번호수정" + memberPw);
-
-	// 방어코드
-	if(request.getParameter("memberNo") == null) {
-		response.sendRedirect("./selectMemberList.jsp?currentPage=1");
-		return;
-	}
-	if(request.getParameter("memberPw") == null) {
-		response.sendRedirect("./selectMemberList.jsp?currentPage=1");
-		return;
-	}
+	Member loginMember = (Member)session.getAttribute("loginMember");
 	
+	System.out.println("[Debug] memberNo : "+memberNo);
+	System.out.println("[Debug] memberPw : "+memberPw);
 	
-	Member member = null;
-	member = new Member();
+	MemberDao memberDao = new MemberDao();
+	Member member = new Member();
 	member.setMemberNo(memberNo);
 	member.setMemberPw(memberPw);
-
-	// dao
-	MemberDao memberDao = new MemberDao();
+	
+	System.out.println("[Debug] member : "+member);
 	
 	memberDao.updateMemberPwByAdmin(member);
-	System.out.println("비밀번호 수정 성공");
-	response.sendRedirect(request.getContextPath() + "/admin/selectMemberList.jsp");
+	
+	response.sendRedirect(request.getContextPath()+"/admin/selectMemberList.jsp");
 %>

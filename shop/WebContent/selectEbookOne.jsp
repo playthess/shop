@@ -1,187 +1,467 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
 <%@ page import = "vo.*" %>
-<%@ page import = "dao.*" %>
-<%@ page import = "java.util.*" %>
+<%@ page import = "model.*" %>
+<%@ page import = "java.util.ArrayList" %>
 <%
+	//인코딩
+	request.setCharacterEncoding("utf-8");
+
+	//로그인 상태라면 세션유지
+	Member loginMember = (Member)session.getAttribute("loginMember");
+	if(loginMember != null){
+		session.setMaxInactiveInterval(30*60);
+	}
+	
+	// 상품평 댓글 현재 페이지
+	int commentCurrentPage = 1;
+	if(request.getParameter("commentCurrentPage") != null){
+		commentCurrentPage = Integer.parseInt(request.getParameter("commentCurrentPage"));
+	}
+	// 디버그
+	System.out.println("[Debug] commentCurrentPage : "+commentCurrentPage);
+	
+	// 문의글목록 현재 페이지
+	int qnaCurrentPage = 1;
+	if(request.getParameter("qnaCurrentPage") != null){
+		qnaCurrentPage = Integer.parseInt(request.getParameter("qnaCurrentPage"));
+	}
+	// 디버그
+	System.out.println("[Debug] qnaCurrentPage : "+qnaCurrentPage);
+	
+	// 상수선언 int값
+	final int ROW_PER_PAGE = 10; // rowPerPage변수 10으로 초기화되면 끝까지 10을 써야 한다. --> 상수
+	
+	// 상품평, 문의 네비게이션에서 보여줄 시작 페이지
+	int commentBeginRow = (commentCurrentPage-1)*ROW_PER_PAGE;
+	int qnaBeginRow = (qnaCurrentPage-1)*ROW_PER_PAGE;
+	
+	// MemberDao
+	MemberDao memberDao = new MemberDao();
+	
+	// 값 가져와서 변수 선언
 	int ebookNo = Integer.parseInt(request.getParameter("ebookNo"));
+	
+	// CategoryDao -> 호출 -> Array배열값
+	CategoryDao categoryDao = new CategoryDao();
+	ArrayList<Category> categoryList = categoryDao.selectCategoryList();
+	
+	// OrderCommentDao -> 호출 -> Array배열값
+	OrderCommentDao orderCommentDao = new OrderCommentDao();
+	ArrayList<OrderComment> orderCommentList = orderCommentDao.selectOrderComment(commentBeginRow, ROW_PER_PAGE, ebookNo);
+	
+	// QnaDao -> 호출 -> Array배열값
+	QnaDao qnaDao = new QnaDao();
+	ArrayList<Qna> qnaList = qnaDao.selectEbookQnaList(qnaBeginRow, ROW_PER_PAGE, ebookNo);
 %>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>상품상세보기(주문)</title>
+<title>책 상세 페이지</title>	<!-- 책 상세 페이지 -->
 </head>
 <body>
-	<h1>상품상세보기</h1>
-	<div>
-		<!-- 상품상세출력 -->
-		<%
-			EbookDao ebookDao = new EbookDao();
-			Ebook ebook = ebookDao.selectEbookOne(ebookNo);
-			// 구현
-		%>
+<div class="container-fluid">
+	<!-- 배너 -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- start : mainMenu include -->
+		<div>
+			<jsp:include page="/partial/mainMenu.jsp"></jsp:include>
 	</div>
-	<div>
-		<h2>전자책 주문</h2>
-		<%
-			Member loginMember = (Member)session.getAttribute("loginMember");
-			if(loginMember == null) {
-		%>
-				<div>
-					로그인 후에 주문이 가능합니다. 
-					<a href="<%=request.getContextPath()%>/loginForm.jsp">로그인 페이지로</a>
-				</div>
-		<%		
-			} else {
-		%>
-				<form method="post" action="<%=request.getContextPath()%>/insertOrderAction.jsp">
-					<input type="hidden" name="ebookNo" value="<%=ebookNo%>">
-					<input type="hidden" name="memberNo" value="<%=loginMember.getMemberNo()%>">
-					<input type="hidden" name="ebookPrice" value="<%=ebook.getEbookPrice()%>">
-					<button type="submit">주문하기</button>
-				</form>
-		<%
-			}
-		%>
+	<!-- end : mainMenu include -->
+	
+	<!-- 본문 -->
+	<%
+		// dao -> 호출 -> 1. vo에 받아온 값 셋팅 2. 평균값
+		EbookDao ebookDao = new EbookDao();
+		Ebook ebook = ebookDao.selectEbookOne(ebookNo);
+		float ebookAVG = ebookDao.selectAVGEbookOne(ebookNo);
+	%>
+	<div style="text-align: center">
+		<br>
+		<h1><%=ebook.getEbookTitle() %> 상세보기</h1>
+		<br>
+	</div>
+	<div class="container-fluid">
+		<form method="post" action="<%=request.getContextPath()%>/insertOrderAction.jsp">
+		<% 
+			// 로그인중이면
+			if(loginMember != null){
+		%>	
+				<!-- 잠재고객이므로 정보를 hidden으로 배치 -->
+				<input type="hidden" name="ebookNo" value="<%=ebookNo%>">
+	            <input type="hidden" name="memberNo" value="<%=loginMember.getMemberNo()%>">
+	           	<input type="hidden" name="orderPrice" value="<%=ebook.getEbookPrice()%>">
+				<table class="table" style="text-align:center; display:table;">
+					<thead>
+							<tr>
+								<th></th>
+								<th></th>
+							</tr>
+					</thead>
+					
+					<tbody>
+							<tr>
+								<td rowspan=13><img src="<%=request.getContextPath() %>/image/<%=ebook.getEbookImg()%>"></td>						
+							</tr>
+					
+							<!-- 구매 활성화 -->
+							<tr>
+								<td class="btn btn-outline-secondary" style="display:table-cell; vertical-align:middle;"><button type="submit" class="btn btn-warning" style="width:67%;">구매</button></td>
+							</tr>
+			<% 	
+				// 로그인 중이 아닐 경우
+				} else {
+			%>
+				<table class="table" style="text-align:center; display:table;">
+					<thead>
+							<tr>
+								<th width="50%"></th>
+								<th width="50%"></th>
+							</tr>
+					</thead>
+					
+					<tbody>
+							<tr>
+								<td rowspan=13 width="50%"><img width="100%" src="<%=request.getContextPath() %>/image/<%=ebook.getEbookImg()%>"></td>						
+							</tr>
+								<!-- 구매 비활성화 -->
+								<tr>
+									<td width="50%" style="display:table-cell;vertical-align:middle; color:blue;">로그인 후에 구매 가능합니다.</td>
+								</tr>
+						<% 	
+							}
+						
+						%>
+							<!-- 로그인 유무와 관계없이 상품정보 배치 -->
+							<tr>
+								<td width="50%" style="display:table-cell;vertical-align:middle;">제목 : <%=ebook.getEbookTitle() %></td>
+							</tr>
+							<tr>
+								<!-- 별점 -->
+								<td style="display:table-cell; vertical-align:middle;">별점 : 
+								<%
+								if(ebookAVG < 0.5){
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(0).png">
+								<%	
+								} else if(ebookAVG < 1) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(0.5).png">
+								<%
+								}else if(ebookAVG < 1.5) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(1).png">
+								<%
+								}else if(ebookAVG < 2) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(1.5).png">
+								<%
+								}else if(ebookAVG < 2.5) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(2).png">
+								<%
+								}else if(ebookAVG < 3) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(2.5).png">
+								<%
+								}else if(ebookAVG < 3.5) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(3).png">
+								<%
+								}else if(ebookAVG < 4) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(3.5).png">
+								<%
+								}else if(ebookAVG < 4.5) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(4).png">
+								<%
+								}else if(ebookAVG < 5) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(4.5).png">
+								<%
+								}else if(ebookAVG == 5) {
+								%>
+								<img src="<%=request.getContextPath() %>/image/star(5).png">
+								<%
+								}
+								%>
+								
+								&nbsp;<%=ebookAVG %></td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">카테고리 : <%=ebook.getCategoryName() %></td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">ISBN : <%=ebook.getEbookISBN() %></td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">저자 : <%=ebook.getEbookAuthor() %></td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">출판사 : <%=ebook.getEbookCompany() %></td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">페이지 : <%=ebook.getEbookPageCount() %></td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">가격 : <%=ebook.getEbookPrice() %> ₩</td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">소개 : <%=ebook.getEbookSummary() %></td>
+							</tr>
+							<tr>
+								<td style="display:table-cell;vertical-align:middle;">상태 : <%=ebook.getEbookState() %></td>
+							</tr>
+							<tr>
+								<%
+								// 추가일과 변경일 날짜가 같으면
+								if(ebook.getCreateDate().equals(ebook.getUpdateDate())){
+								%>	
+									<td style="display:table-cell;vertical-align:middle;">추가일 : <%=ebook.getCreateDate() %></td>
+								<%
+									// 같지 않으면
+									} else {
+								%>
+									<td style="display:table-cell;vertical-align:middle;">마지막 변경일 : <%=ebook.getUpdateDate() %></td>
+								<%
+									}
+								%>
+							</tr>
+					</tbody>	
+			</table>
+		</form>
 	</div>
 	
-	<div>
-		<h2>상품 후기</h2>
-		<!-- 이 상품의 별점의 평균 -->
-		<!-- select avg(order_score) from order_comment where ebook_no=? order by ebook_no -->
-		<div>
-			<%
-			OrderCommentDao orderCommentDao = new OrderCommentDao();
-			double avgScore = orderCommentDao.selectOrderScoreAvg(ebookNo);
-			%>
-			별점 평균 : <%=avgScore%>
-		</div>
-		<div>
-			<h2>후기 목록(페이징)</h2>
-			
-							<!-- 이 상품의 상품 후기(페이징) -->
-				<%
-				// 페이징
-				// 페이지번호 = 전달 받은 값이 없으면 currentPage를 1로 디폴트
-				int currentPage = 1;
-				// current가 null이 아니라면 값을 int 타입으로로 바꾸어서 페이지 번호로 사용
-				if(request.getParameter("currentPage") != null) { 
-					currentPage = Integer.parseInt(request.getParameter("currentPage"));
-				}
-				// 디버깅
-				System.out.println("currentPage(현재 페이지 번호) : "+currentPage);
-				
-				// limit 값 설정 beginRow부터 rowPerPage만큼 보여주세요
-				// ROW_PER_PAGE 변수를 상수로 설정하여서 10으로 초기화하면 끝까지 10이다.
-				final int ROW_PER_PAGE = 10;
-				int beginRow = (currentPage-1) * ROW_PER_PAGE;
-				
-				ArrayList<OrderComment> commentList = new ArrayList<OrderComment>();
-				commentList = orderCommentDao.selectCommentList(beginRow, ROW_PER_PAGE, ebookNo);
-				
-				// 마지막 페이지(lastPage)를 구하는 orderCommentDao의 메서드 호출
-				// int 타입의 lastPage에 저장
-				// 전체 행을 COUNT 하는 selectCommentListLastPage메서드 호출
-				int lastPage = orderCommentDao.selectCommentListLastPage(ROW_PER_PAGE, ebookNo);
-				
-				// 화면에 보여질 페이지 번호의 갯수
-				int displayPage = 10;
-				
-				// 화면에 보여질 시작 페이지 번호
-				// ((현재페이지번호 - 1) / 화면에 보여질 페이지 번호) * 화면에 보여질 페이지 번호 + 1
-				// (currentPage - 1)을 하는 이유는 현재페이지가 10일시에도 startPage가 1이기 위해서
-				int startPage = ((currentPage - 1) / displayPage) * displayPage + 1;
-					
-				// 화면에 보여질 마지막 페이지 번호
-				// 만약에 마지막 페이지 번호(lastPage)가 화면에 보여질 페이지 번호(displayPage)보다 작다면 화면에 보여질 마지막 페이지번호(endPage)를 조정한다
-				// 화면에 보여질 시작 페이지 번호 + 화면에 보여질 페이지 번호 - 1
-				// -1을 하는 이유는 페이지 번호의 갯수가 10개이기 때문에 statPage에서 더한 1을 빼준다
-				int endPage = 0;
-				if(lastPage<displayPage){
-					endPage = lastPage;
-				} else if (lastPage>=displayPage){
-					endPage = startPage + displayPage - 1;
-				}
-				
-				// 디버깅
-				System.out.println("startPage(화면에 보여질 시작 페이지 번호) : "+startPage+", endPage(화면에 보여질 마지막 페이지 번호) : "+endPage);
-				%>
-				<table class="table mt-1">
+	<!-- 상품평 -->
+	<br>
+	<br>
+	<div class="container-fluid">
+		<table class="table">
+			<thead>
 					<tr>
-						<td style="width:10%; text-align:center">GRADE</td>
-						<td>COMMENT</td>
-						<td style="width:10%; text-align:center">DATE</td>
+						<th width="20%">후기</th>
+						<th width="20%">작성자</th>
+						<th width="30%">내용</th>
+						<th width="30%">추가일</th>
 					</tr>
+			</thead>
+		<%
+		// for each문
+		for(OrderComment o: orderCommentList){
+		%>
+			<tr>
+				<td><%=o.getOrderScore()%>점</td>
+				<td>
 					<%
-						for(OrderComment c : commentList) {
-					%>
-							<tr>
-								<td><%=c.getOrderScore()%></td>
-								<td><%=c.getOrderCommentContent()%></td>
-								<td><%=c.getCreateDate()%></td>
-							</tr>
-					<%
+					ArrayList<Member> member = memberDao.selectMemberOne(o.getMemberNo());
+
+					for(Member m : member){
+						%>
+							<%=m.getMemberName() %>
+						<%	
 						}
 					%>
-				</table>
-				
-				<%
-				// 처음으로 버튼
-				// 제일 첫번째 페이지로 이동할때 = 1 page로 이동
-				if(currentPage != 1){
-				%>
-					<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?currentPage=<%=1%>&ebookNo=<%=ebookNo%>" class="btn btn-outline-secondary center-block">◀처음</a>
-				<%
-				}
-					
-				// 이전 버튼
-				// 화면에 보여질 시작 페이지 번호가 화면에 보여질 페이지 번호의 갯수보다 크다면 이전 버튼을 생성
-				if(startPage > displayPage){
-				%>
-					<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?currentPage=<%=startPage-displayPage%>&ebookNo=<%=ebookNo%>" class="btn btn-outline-secondary">&lt;이전</a>
-				<%
-				}
-							
-				// 페이징버튼
-				// 화면에 보여질 시작 페이지 번호를 화면에 보여질 마지막 페이지 번호까지 반복하면서 페이지 번호 생성
-				// 만약에 화면에 보여질 마지막 페이지 번호가 마지막 페이지보다 크다면 for문을 break로 종료시킴
-				for(int i=startPage; i<=endPage; i++){
-					if(currentPage == i){
-				%>
-						<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?currentPage=<%=i%>&ebookNo=<%=ebookNo%>" class="btn btn-secondary"><%=i%></a>
-				<%
-					} else if(endPage<lastPage || endPage == lastPage){
-				%>
-						<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?currentPage=<%=i%>&ebookNo=<%=ebookNo%>" class="btn btn-outline-secondary"><%=i%></a>
-				<%	
-					} else if(endPage>lastPage){
-						break;
-					}
-				}
-					
-				// 다음 버튼
-				// 화면에 보여질 마지막 페이지 번호가 마지막페이지보다 작다다면 이전 버튼을 생성
-				if(endPage < lastPage){
-				%>
-					<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?currentPage=<%=startPage+displayPage%>&ebookNo=<%=ebookNo%>" class="btn btn-outline-secondary">다음></a>
-				<%
-					}
-							
-				// 끝으로 버튼
-				// 가장 마지막 페이지로 바로 이동하는 버튼
-				if(currentPage != lastPage){
-				%>
-					<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?currentPage=<%=lastPage%>&ebookNo=<%=ebookNo%>" class="btn btn-outline-secondary">끝▶</a>
-				<%
-				}
-				%>
-			
-		</div>
+					</td>
+				<td><%=o.getOrderContent()%></td>
+				<td><%=o.getUpdateDate()%></td>
+			</tr>
+		<%
+		}
+		%>
+		</table>
 	</div>
+	<%
+	// 상품평이 존재하지 않을 경우 네비게이션 바만 표시하지 않음
+	if(!(orderCommentList).isEmpty()){
+	%>
+	<!-- 후기 네비게이션 바 -->
+		<div style="margin: auto; text-align: center;">
+			<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&commentCurrentPage==1&qnaCurrentPage=<%=qnaCurrentPage%>">처음으로</a>
+		<%
+			if(commentCurrentPage != 1){
+		%>
+				<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&commentCurrentPage=<%=commentCurrentPage-1%>&qnaCurrentPage=<%=qnaCurrentPage%>">이전</a>
+		<%
+			}
+			
+			int CommentLastPage = orderCommentDao.selectOrderCommentLastPageByOne(ebookNo, ROW_PER_PAGE);
+			
+			int CommentDisplayPage = 10;
+			
+			int CommentStartPage = ((commentCurrentPage - 1) / CommentDisplayPage) * CommentDisplayPage + 1;
+			int CommentEndPage = CommentStartPage + CommentDisplayPage - 1;
+			
+			for(int i=CommentStartPage; i<=CommentEndPage; i++) {
+				if(CommentEndPage<=CommentLastPage){
+		%>
+					<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&commentCurrentPage=<%=i%>&qnaCurrentPage=<%=qnaCurrentPage%>"><%=i%> </a>
+		<%
+				} else if(CommentEndPage>CommentLastPage){
+		%>
+					<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&commentCurrentPage=<%=i%>&qnaCurrentPage=<%=qnaCurrentPage%>"><%=i%> </a>
+		<%
+				}
+				if(i == CommentLastPage){
+					break;
+				}
+			}
+			if(commentCurrentPage != CommentLastPage){
+			%>
+				<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&commentCurrentPage=<%=commentCurrentPage+1%>&qnaCurrentPage=<%=qnaCurrentPage%>">다음</a>
+			<%
+			}
+			%>
+			<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&commentCurrentPage=<%=CommentLastPage%>&qnaCurrentPage=<%=qnaCurrentPage%>">끝으로</a>
+		</div>
+	<%
+	}
+	%>
+			
+	<!-- 문의사항 -->
+	<br>
+	<br>
+	<div class="container-fluid">
+		<table class="table">
+			<thead>
+					<tr>
+						<th width="20%">문의사항 <a href="<%=request.getContextPath()%>/insertQnaForm.jsp?ebookNo=<%=ebookNo %>" class="btn btn-outline-secondary">건의</a></th>
+						<th width="20%">작성자</th>
+						<th width="30%">내용</th>
+						<th width="30%">마지막 수정일</th>
+					</tr>
+			</thead>
+		<%
+		for(Qna q: qnaList){
+			if(loginMember != null){
+				if(loginMember.getMemberLevel() >=1 || q.getQnaSecret().equals("Y") &&  loginMember.getMemberNo() == q.getMemberNo()){
+			%>
+				<tr>
+					<td><%=q.getQnaCategory()%></td>
+					<td>
+					<%
+					ArrayList<Member> member = memberDao.selectMemberOne(q.getMemberNo());
+					for(Member m : member){
+					%>
+						<%=m.getMemberName() %>
+					<%	
+					}
+					%>
+					</td>
+					<td><a href="selectQnaOne.jsp?qnaNo=<%=q.getQnaNo()%>&memberNo=<%=q.getMemberNo()%>"><%=q.getQnaTitle()%></a></td>
+					<td><%=q.getUpdateDate() %></td>
+				</tr>
+			<%
+				} else if(q.getQnaSecret().equals("Y") &&  loginMember.getMemberNo() != q.getMemberNo()){
+				%>
+					<tr>
+						<td></td>
+						<td></td>
+						<td>비밀글입니다.</td>
+						<td></td>
+					</tr>
+				<%
+				} else {
+				%>
+					<tr>
+					<td><%=q.getQnaCategory()%></td>
+					<td>
+					<%
+					ArrayList<Member> member = memberDao.selectMemberOne(q.getMemberNo());
+					for(Member m : member){
+					%>
+						<%=m.getMemberName() %>
+					<%	
+					}
+					%>
+					</td>
+					<td><a href="selectQnaOne.jsp?qnaNo=<%=q.getQnaNo()%>&memberNo=<%=q.getMemberNo()%>"><%=q.getQnaTitle()%></a></td>
+					<td><%=q.getUpdateDate() %></td>
+				</tr>
+				<%
+				}
+			} else if(q.getQnaSecret().equals("Y")){
+			%>
+				<tr>
+					<td></td>
+					<td></td>
+					<td>비밀글입니다.</td>
+					<td></td>
+				</tr>
+			<%
+			} else {
+			%>
+				<tr>
+					<td><%=q.getQnaCategory()%></td>
+					<td>
+					<%
+					ArrayList<Member> member = memberDao.selectMemberOne(q.getMemberNo());
+					for(Member m : member){
+					%>
+						<%=m.getMemberName() %>
+					<%	
+					}
+					%>
+					</td>
+					<td><a href="selectQnaOne.jsp?qnaNo=<%=q.getQnaNo()%>&memberNo=<%=q.getMemberNo()%>"><%=q.getQnaTitle()%></a></td>
+					<td><%=q.getUpdateDate() %></td>
+			</tr>
+			<%
+			}
+		} 
+		%>
+		</table>
+	</div>	
+	
+	<!-- 문의사항이 없을 경우 네비게이션바만 표시하지 않음 -->
+	<%
+	if(!(qnaList).isEmpty()){
+	%>
+	<!-- 문의 네비게이션 바 -->
+		<div style="margin: auto; text-align: center;">
+			<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&qnaCurrentPage=1&commentCurrentPage=<%=commentCurrentPage%>">처음으로</a>
+		<%
+			if(qnaCurrentPage != 1){
+		%>
+				<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&qnaCurrentPage=<%=qnaCurrentPage-1%>&commentCurrentPage=<%=commentCurrentPage%>">이전</a>
+		<%
+			}
+			
+			int QnaLastPage = qnaDao.selectQnaLastPageByOne(ebookNo, ROW_PER_PAGE);
+			
+			int QnaDisplayPage = 10;
+			
+			int QnaStartPage = ((qnaCurrentPage - 1) / QnaDisplayPage) * QnaDisplayPage + 1;
+			int QnaEndPage = QnaStartPage + QnaDisplayPage - 1;
+			
+			for(int i=QnaStartPage; i<=QnaEndPage; i++) {
+				if(QnaEndPage<=QnaLastPage){
+		%>
+					<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&qnaCurrentPage=<%=i%>&commentCurrentPage=<%=commentCurrentPage%>"><%=i%> </a>
+		<%
+				} else if(QnaEndPage>QnaLastPage){
+		%>
+					<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&qnaCurrentPage=<%=i%>&commentCurrentPage=<%=commentCurrentPage%>"><%=i%> </a>
+		<%
+				}
+				if(i == QnaLastPage){
+					break;
+				}
+			}
+			if(qnaCurrentPage != QnaLastPage){
+			%>
+				<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&qnaCurrentPage=<%=qnaCurrentPage+1%>&commentCurrentPage=<%=commentCurrentPage%>">다음</a>
+			<%
+			}
+			%>
+			<a class="btn btn-warning" href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=ebookNo %>&qnaCurrentPage=<%=QnaLastPage%>&commentCurrentPage=<%=commentCurrentPage%>">끝으로</a>
+		</div>
+	<%
+	}
+	%>
+	
+</div>
+
 </body>
 </html>
-
-
-
-
-

@@ -11,13 +11,24 @@
 		response.sendRedirect(request.getContextPath()+"/index.jsp");
 		return;
 	} 
+	session.setMaxInactiveInterval(30*60);
 %>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>여기에 제목을 입력하십시오</title>
+<title>카테고리 추가</title>	<!-- 관리자 카테고리 추가 페이지 -->
 </head>
 <body>
+<div class="container-fluid">
+	<!-- banner include -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- 관리자 메뉴 include -->
+	<!-- 관리자 메뉴 인클루드(include)시작 ,페이지 형태만 인클루드 하는 것이 좋음(코드 형태는 비추천).-->
+	<div>
+		<jsp:include page="/partial/adminMenu.jsp"></jsp:include><!-- jsp액션태그 -->
+	</div>
+</div>
+<div class="container" style="text-align:center;">
 	<h1>카테고리 추가</h1>
 	
 	<%
@@ -34,20 +45,37 @@
 			<div>중복 검사</div>
 			<div>
 				<input type="text" name="categoryNameCheck"> 
-				<button type="submit">중복 검사</button> 
-			<%
-				if(!categoryCheckResult.equals("")){
-			%>
-					<%=request.getParameter("categoryCheckResult") %>
-			<%
-				}
-			%>
+				<button type="submit" class="btn btn-outline-secondary">중복 검사</button> 
 			</div>
 		</form>
-	<form method="post" action="<%=request.getContextPath() %>/admin/insertCategoryAction.jsp">
+	<form name="InsertCategory" method="post" action="<%=request.getContextPath() %>/admin/insertCategoryAction.jsp">
 		<div>추가할 카테고리</div>
-		<div><input type="text" name="categoryName"  value="<%=categoryNameCheck%>" readonly></div>
-		<div><button type="submit">추가</button></div>
+		<div>
+			<input type="text" class="categoryName" name="categoryName"  value="<%=categoryNameCheck%>" readonly>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<button type="button" class="btn btn-outline-secondary" onclick="insertCategory()">추가</button>
+			<div id="error" style="color:red">　</div>
+		</div>
 	</form>
+	<%
+		if(!categoryCheckResult.equals("")){
+	%>
+			<%=request.getParameter("categoryCheckResult") %>
+	<%
+		}
+	%>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+	// 유효성 검사
+	function insertCategory() {
+		if($(".categoryName").val() == ""){
+			document.getElementById("error").innerHTML = '먼저 중복검사를 진행해주세요.';
+			return;
+		} else{
+			InsertCategory.submit();
+		}
+	};
+</script>
 </body>
 </html>
