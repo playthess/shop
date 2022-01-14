@@ -29,9 +29,9 @@
 	
 	<form id="loginForm" class="form-inline" method="post" action="<%=request.getContextPath() %>/loginAction.jsp">
 		<div>memberId : </div>
-		<div><input type="text" id="memberId" name="memberId"  placeholder="Enter id" value=""></div>
+		<div><input type="text" id="memberId" name="memberId"  placeholder="Enter id" value="1234"></div>
 		<div>memberPw : </div>
-		<div><input type="password" id="memberPw" name="memberPw" placeholder="Enter password" value=""></div>
+		<div><input type="password" id="memberPw" name="memberPw" placeholder="Enter password" value="1234"></div>
 		<div><button id="loginBtn" type="button">로그인</button></div>
 	</form>
 	

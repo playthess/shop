@@ -7,17 +7,24 @@
 <head>
 <meta charset="UTF-8">
 <title>index.jsp</title>
+  <!-- https://www.w3schools.com/ 부트스트랩 적용 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-<div>
 	<!-- submenu 인클루드(include) 시작 -->
-	<div>
-		<!-- ./같은위치/partial폴더/submenu.jsp(webContent,상대주소) , /shop/partial/submenu.jsp(프로젝트기준,절대주소),/partial/submenu.jsp(절대주소)-->
-		<jsp:include page="/partial/mainMenu.jsp"></jsp:include><!-- jsp액션태그 -->
+	<div class="container-fluid">
+	<!-- 배너 -->
+	<jsp:include page="/partial/banner.jsp"></jsp:include>
+		<!-- start : mainMenu include -->
+		<div>
+			<jsp:include page="/partial/mainMenu.jsp"></jsp:include>
 	</div>
 	<!-- submenu 인클루드 끝 -->
 	<div>
-	<h1>index</h1>
 		<!-- 로그인 작업 -->
 			<%
 				if(session.getAttribute("loginMember") == null) {
@@ -70,108 +77,99 @@
 		// 최근 공지사항 5개
 		ArrayList<Notice> createNoticeList = noticeDao.selectCreateEbookList();
 	%>
-	<h2>공지사항</h2>
-	<div>
-		<table border="1">
-			<%
-				for(Notice n: createNoticeList) {
-			%>		
-				<thead>
-					<tr>
-						<th>공지사항 번호</th>
-						<th>공지사항 제목</th>
-						<th>memberNo</th>
-						<th>createDate</th>
-						<th>updateDate</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td><%=n.getNoticeNo() %></td>
-						<td>
-							<a href="<%=request.getContextPath() %>/selectNoticeOne.jsp?noticeNo=<%=n.getNoticeNo() %>"><%=n.getNoticeTitle() %></a>
-						</td>
-						<td><%=n.getMemberNo() %></td>
-						<td><%=n.getUpdateDate() %></td>
-						<td><%=n.getCreateDate() %></td>
-					</tr>
-				</tbody>
-			<% 
-				}
-			%>
+	<div class="container-fluid" style="text-align: center">
+		<br>
+		<h1>공지사항</h1>
+		<br>
+		<table class="table">
+		<%
+		for(Notice n : createNoticeList)	{
+		%>
+			<tr>		
+				<td>
+					<div><a href="<%=request.getContextPath()%>/selectNoticeOne.jsp?noticeNo=<%=n.getNoticeNo()%>"><%=n.getNoticeTitle() %></a></div>
+				</td>
+				
+			</tr>
+		<%
+		}
+		%>
 		</table>
-	
 	</div>
 	
-	<h2>신상품 목록</h2>
-	<div>
-		<table border="1">
-		<tr>
-			<%
-				for(Ebook e: createEbookList) {
-			%>
-					<td>
-						<div>
-							<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>">
-								<img src="<%=request.getContextPath()%>/image/<%=e.getEbookImg()%>" width="200" height="200">
-							</a>
-						</div>
-						<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><%=e.getEbookTitle()%></a></div>
-						<div>₩ <%=e.getEbookPrice()%></div>
-					</td>
-			<%
+	<!-- 신간도서 5개 출력 -->
+	<div class="container-fluid" style="text-align: center">
+		<br>
+		<h1>신간도서</h1>
+		<br>
+		<table class="table">
+			<tr>
+				<%
+				for(Ebook e : createEbookList)	{
+				%>
+				<td>
+					<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><img src="<%=request.getContextPath() %>/image/<%=e.getEbookImg() %>" width="170" height="200"></a></div>
+					<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><%=e.getEbookTitle() %></a></div>
+					<div>₩ <%=e.getEbookPrice() %></div>
+				</td>
+				<%
 				}
-			%>
-		</tr>
-	</table>
+				%>
+			</tr>
+		</table>
 	</div>
 	
-	<h2>인기 상품 목록</h2>
-	<table border="1">
-		<tr>
-			<%
-				for(Ebook e: popularEbookList) {
-			%>
-					<td>
-						<div>
-							<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>">
-								<img src="<%=request.getContextPath()%>/image/<%=e.getEbookImg()%>" width="200" height="200">
-							</a>
-						</div>
-						<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><%=e.getEbookTitle()%></a></div>
-						<div>₩ <%=e.getEbookPrice()%></div>
-					</td>
-			<%
+	<!-- 베스트셀러 5개 출력 -->
+	<div class="container-fluid" style="text-align: center">
+		<br>
+		<h1>베스트셀러</h1>
+		<br>
+		<table class="table">
+			<tr>
+				<%
+				for(Ebook e : popularEbookList)	{
+				%>
+				<td>
+					<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><img src="<%=request.getContextPath() %>/image/<%=e.getEbookImg() %>" width="170" height="200"></a></div>
+					<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><%=e.getEbookTitle() %></a></div>
+					<div>₩ <%=e.getEbookPrice() %></div>
+				</td>
+				<%
 				}
-			%>
-		</tr>
-	</table>
+				%>
+			</tr>
+		</table>
+	</div>
 	
+	<div class="container-fluid" style="text-align: center">
+	<br>
 	<h2>전체 상품 목록</h2>
-	<table border="1">
-		<tr>
+	<br>
+	<table class="table">
+			<tr>
 			<%
-				int i = 0;
-				for(Ebook e : ebookList) {
-			%>	
-					<td>
-						<div>
-							<a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><img src="<%=request.getContextPath()%>/image/<%=e.getEbookImg()%>" width="200" height="200"></a>
-						</div>
-						<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><%=e.getEbookTitle()%></a></div>
-						<div>₩ <%=e.getEbookPrice()%></div>
-					</td>	
-			<%
-					i+=1; // i=i+1; i++; for문 끝날때마다 i는 1씩 증가
-					if(i%5 == 0) {
+				int b = 0;
+				for(Ebook e : ebookList){
 			%>
-						</tr><tr><!-- 줄바꿈 -->
+					
+						<td>
+							<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><img src="<%=request.getContextPath() %>/image/<%=e.getEbookImg() %>" width="170" height="200"></a></div>
+							<div><a href="<%=request.getContextPath()%>/selectEbookOne.jsp?ebookNo=<%=e.getEbookNo()%>"><%=e.getEbookTitle() %></a></div>
+							<div>₩ <%=e.getEbookPrice() %></div>
+						</td>
+					
+			<%
+					b= b+1;
+					if(b%5 == 0){
+			%>
+					</tr><tr>
 			<%			
 					}
 				}
 			%>
-		</tr>
-	</table>
+			</tr>
+		</table>
+	</div>
 	<div>copyright goodee GDJ40</div>
 </div>
 </body>
